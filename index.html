@@ -6,13 +6,19 @@
     <title>Conferir Nota Fiscal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
+        /* Estilos Padrão (Desktop/Geral) */
         .mock-table th, .mock-table td {
             padding: 12px;
             text-align: left;
             border-bottom: 1px solid #e5e7eb; 
             border-right: 1px solid #e5e7eb; 
-            /* --- CORREÇÃO DO SCROLL: Força o conteúdo a ficar em uma linha em qualquer dispositivo --- */
+            
+            /* --- SCROLL DA TABELA ATIVO (para visualizar conteúdo longo sem truncamento) --- */
             white-space: nowrap; 
+            
+            /* --- CORREÇÃO: Garante que o conteúdo não seja substituído por '...' --- */
+            text-overflow: clip; 
+            overflow: visible; /* Garante visibilidade e força o scroll no contêiner pai */
         }
         
         /* Regra para remover a linha vertical da última coluna */
@@ -37,10 +43,10 @@
         /* Estilos base para a coluna Diferença (E - 5ª coluna visível) */
         #conferencia-content tr td:nth-child(5) { 
             font-weight: bold;
-            text-align: center; /* Centraliza o número para melhor visualização */
+            text-align: center;
         }
 
-        /* Define a largura da coluna Status (6ª coluna) igual à Quantidade NF (3ª coluna) */
+        /* Define a largura da coluna Status (6ª coluna) e Quantidade NF (3ª coluna) */
         #conferencia-content .mock-table th:nth-child(3), 
         #conferencia-content .mock-table td:nth-child(3),
         #conferencia-content .mock-table th:nth-child(6), 
@@ -48,34 +54,99 @@
              width: 100px; /* Largura fixa para ambas */
              min-width: 100px;
              max-width: 100px;
-             overflow: hidden;
-             text-overflow: ellipsis;
+             overflow: hidden; 
+             text-overflow: clip; /* Garante que não tenha o '...' */
              white-space: nowrap;
         }
 
 
-        /* --- CORREÇÃO DA COR: Classes com alta especificidade para colorir o BACKGROUND da célula inteira --- */
+        /* --- CORES PARA O FUNDO DA CÉLULA DIFERENÇA (Ajustado com alta especificidade) --- */
         /* Vermelho (Negativo) */
         #conferencia-content tr td:nth-child(5).bg-fee2e2 { 
-            background-color: #fee2e2 !important; /* Vermelho suave (red-100) */
+            background-color: #fee2e2 !important; 
         }
         #conferencia-content tr td:nth-child(5).text-b91c1c { 
-            color: #b91c1c !important; /* Vermelho escuro (red-700) */
+            color: #b91c1c !important; 
         }
         /* Verde (Positivo) */
         #conferencia-content tr td:nth-child(5).bg-green-100 { 
-            background-color: #d1fae5 !important; /* Verde suave */
+            background-color: #d1fae5 !important; 
         } 
         #conferencia-content tr td:nth-child(5).text-green-700 { 
-            color: #047857 !important; /* Verde escuro */
+            color: #047857 !important; 
         } 
-        /* -------------------------------------------------------------------------------------------------- */
+        /* --------------------------------------------------------------------------------- */
 
 
         /* Estilo para células editáveis (Contagem Loja / Status) */
         [contenteditable="true"]:focus {
             outline: none;
-            box-shadow: 0 0 0 2px #c7d2fe; /* Exemplo de foco suave */
+            box-shadow: 0 0 0 2px #c7d2fe;
+        }
+        
+        /* ---------------------------------------------------------------- */
+        /* --- CORREÇÃO PADDING RESPONSIVO: APENAS PARA CELULAR (< 768px) --- */
+        /* ---------------------------------------------------------------- */
+        @media (max-width: 767px) {
+            
+            /* 1. Remove padding e limitações de largura do container principal */
+            .container {
+                padding: 0 !important;
+                max-width: 100% !important;
+            }
+            
+            /* 2. Ajusta a box branca principal (o 'card' do app) para se estender completamente. */
+            .container .bg-white {
+                border-radius: 0;
+                border-left: none;
+                border-right: none;
+                padding: 1.5rem 0 !important; 
+            }
+            
+            /* 3. Adiciona o padding horizontal de 1rem de volta aos elementos internos que devem ser alinhados (header, botões, navegação). */
+            header, nav, .flex.flex-wrap {
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
+            
+            /* 4. Corrige o padding da navegação para se alinhar ao conteúdo */
+            nav {
+                border-bottom: 1px solid #e5e7eb; 
+                margin: 0 1rem; 
+            }
+            
+            /* 5. Garante que o container da tabela (com scroll) se alinhe ao conteúdo. */
+            .overflow-x-auto {
+                border-radius: 0 !important;
+                box-shadow: none !important;
+                border: none !important;
+                padding-left: 1rem; 
+                padding-right: 1rem;
+            }
+            
+            /* 6. Garante que a tabela use o espaço que precisa, forçando o scroll horizontal no pai (.overflow-x-auto) */
+            .mock-table {
+                width: max-content !important; 
+                min-width: 100%; 
+            }
+            
+            /* 7. Regra para a Coluna 'Descrição' (50% da largura em mobile) */
+            #dynamic-table-content .mock-table th:nth-child(1),
+            #dynamic-table-content .mock-table td:nth-child(1),
+            #conferencia-content .mock-table th:nth-child(2),
+            #conferencia-content .mock-table td:nth-child(2) {
+                min-width: 250px !important; 
+            }
+            
+            /* 8. Desativa a largura fixa (100px) para QTD NF e OBS no mobile, deixando-as flexíveis */
+             #conferencia-content .mock-table th:nth-child(6), 
+             #conferencia-content .mock-table td:nth-child(6), 
+             #conferencia-content .mock-table th:nth-child(3), 
+             #conferencia-content .mock-table td:nth-child(3) { 
+                 width: auto !important; 
+                 min-width: 100px; 
+                 max-width: none !important;
+             }
         }
         
         /* ---------------------------------------------------------------- */
@@ -85,7 +156,6 @@
             body {
                 margin: 0;
                 padding: 0;
-                /* Define o tamanho da página A4 */
                 width: 210mm; 
                 min-height: 297mm;
             }
@@ -109,10 +179,10 @@
                 font-size: 10pt;
             }
             .mock-table th, .mock-table td {
-                padding: 4px; /* Reduz padding para caber mais */
+                padding: 4px; 
                 border-bottom: 1px solid #ccc;
                 border-right: 1px solid #ccc;
-                /* Remove o nowrap para que o texto quebre na impressão */
+                /* Permite a quebra de linha na impressão */
                 white-space: normal !important; 
             }
             .mock-table th:last-child, .mock-table td:last-child {
@@ -296,6 +366,7 @@
             // Define se a coluna "Status" (índice 5 da Conferência) deve ser editável
             const isStatusEditable = sheetName === "CONFERENCIA";
 
+            // O contêiner pai mantém o overflow-x-auto para que o scroll horizontal funcione no PC e Mobile.
             let html = `
                 <div class="rounded-lg border border-gray-200 overflow-x-auto shadow-sm">
                     <table class="mock-table w-full text-sm" id="${isEditable ? 'contagem-table' : (isStatusEditable ? 'conferencia-table' : '')}">
@@ -910,6 +981,10 @@
             switchTab('NOTA FISCAL'); 
         });
 
+
+
+
+        
     </script>
 </body>
 </html>
