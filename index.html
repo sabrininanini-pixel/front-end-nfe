@@ -82,16 +82,14 @@
             }
             
             /* 2. Ajusta a box branca principal (o 'card' do app) para se estender completamente. */
-            /* O padding original (p-6) é substituído por um padding lateral zero. */
             .container .bg-white {
                 border-radius: 0;
                 border-left: none;
                 border-right: none;
-                /* Remove padding lateral para que o conteúdo ocupe a borda */
                 padding: 1.5rem 0 !important; 
             }
             
-            /* 3. Adiciona o padding horizontal de 1rem (o padrão) de volta aos elementos internos que devem ser alinhados (header, botões, navegação). */
+            /* 3. Adiciona o padding horizontal de 1rem de volta aos elementos internos que devem ser alinhados (header, botões, navegação). */
             header, nav, .flex.flex-wrap {
                 padding-left: 1rem;
                 padding-right: 1rem;
@@ -99,17 +97,15 @@
             
             /* 4. Corrige o padding da navegação para se alinhar ao conteúdo */
             nav {
-                border-bottom: 1px solid #e5e7eb; /* Restaura a linha do separador */
+                border-bottom: 1px solid #e5e7eb; 
                 margin: 0 1rem; 
             }
             
-            /* 5. Garante que o container da tabela (com scroll) se alinhe ao conteúdo, mas sem margem. */
+            /* 5. Garante que o container da tabela (com scroll) se alinhe ao conteúdo. */
             .overflow-x-auto {
-                /* Remove bordas e sombra desnecessárias na borda da tela */
                 border-radius: 0 !important;
                 box-shadow: none !important;
                 border: none !important;
-                /* Adiciona padding interno para a tabela não colar nas laterais */
                 padding-left: 1rem; 
                 padding-right: 1rem;
             }
@@ -119,10 +115,46 @@
                 background-color: transparent !important;
             }
             
-            /* 7. Garante que as células da tabela não quebrem linha, forçando o scroll horizontal do container pai. */
+            /* ------------------------------------------- */
+            /* --- REGRAS PARA SCROLL E LARGURA DE 50% --- */
+            /* ------------------------------------------- */
+            
+            /* 7. Garante que a tabela use o espaço que precisa, forçando o scroll horizontal no pai (.overflow-x-auto) */
+            .mock-table {
+                width: max-content !important; /* ESSENCIAL: Força a tabela a ser mais larga que a tela */
+                min-width: 100%; 
+            }
+            
+            /* Garante que o conteúdo não quebre linha */
             .mock-table th, .mock-table td {
                  white-space: nowrap; 
             }
+            
+            /* 8. Regra para a Coluna 'Descrição' (50% da largura em mobile) */
+            /* NOTA FISCAL: 1ª coluna (Descrição) */
+            #dynamic-table-content .mock-table th:nth-child(1),
+            #dynamic-table-content .mock-table td:nth-child(1) {
+                /* Min-width alto para dominar o espaço e simular 50% */
+                min-width: 250px !important; 
+            }
+            
+            /* CONFERENCIA: 2ª coluna (Descrição do Produto) */
+            #conferencia-content .mock-table th:nth-child(2),
+            #conferencia-content .mock-table td:nth-child(2) {
+                /* Min-width alto para dominar o espaço e simular 50% */
+                min-width: 250px !important; 
+            }
+
+            /* 9. Desativa a largura fixa (100px) para QTD NF e OBS no mobile, deixando-as responsivas */
+             #conferencia-content .mock-table th:nth-child(6), 
+             #conferencia-content .mock-table td:nth-child(6), /* OBS */
+             #conferencia-content .mock-table th:nth-child(3), 
+             #conferencia-content .mock-table td:nth-child(3) { /* Quantidade NF */
+                 width: auto !important; 
+                 min-width: 100px; 
+                 max-width: none !important;
+                 overflow: hidden;
+             }
         }
         
         /* ---------------------------------------------------------------- */
