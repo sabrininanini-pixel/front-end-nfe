@@ -6,16 +6,14 @@
     <title>Conferir Nota Fiscal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
+        /* Estilos Padrão (Desktop/Geral) */
         .mock-table th, .mock-table td {
             padding: 12px;
             text-align: left;
-            /* Alterado: Cor mais escura para a linha horizontal (gray-200) */
             border-bottom: 1px solid #e5e7eb; 
-            /* Novo: Adiciona linha vertical sutil (gray-200) */
             border-right: 1px solid #e5e7eb; 
         }
         
-        /* Regra para remover a linha vertical da última coluna */
         .mock-table th:last-child, .mock-table td:last-child {
             border-right: none;
         }
@@ -30,29 +28,33 @@
             background-color: #f9fafb; /* gray-50 */
         }
 
-        /* ---------------------------------------------------------------- */
-        /* --- Estilos de Edição/Conferência --- */
-        /* ---------------------------------------------------------------- */
+        /* --- Estilos de Edição/Conferência GERAL --- */
         
         /* Estilos base para a coluna Diferença (E - 5ª coluna visível) */
         #conferencia-content tr td:nth-child(5) { 
             font-weight: bold;
-            text-align: center; /* Centraliza o número para melhor visualização */
+            text-align: center; 
         }
 
-        /* Define a largura da coluna Status/OBS (6ª coluna) igual à Quantidade NF (3ª coluna) */
-        #conferencia-content .mock-table th:nth-child(3), 
-        #conferencia-content .mock-table td:nth-child(3),
+        /* Largura fixa e scroll para OBS (6ª coluna) - Padrão */
         #conferencia-content .mock-table th:nth-child(6), 
         #conferencia-content .mock-table td:nth-child(6) {
-             width: 100px; /* Largura fixa */
+             width: 100px; 
              min-width: 100px;
              max-width: 100px;
-             /* REMOVIDO: overflow: hidden; e text-overflow: ellipsis; */
-             /* NOVO: Adiciona scroll horizontal */
-             overflow-x: auto;
+             overflow: hidden;
              white-space: nowrap;
         }
+        /* Aplica a largura fixa também à 3ª coluna (Quantidade NF) no DESKTOP (mantendo o layout original) */
+         #conferencia-content .mock-table th:nth-child(3), 
+         #conferencia-content .mock-table td:nth-child(3) {
+             width: 100px; 
+             min-width: 100px;
+             max-width: 100px;
+             overflow: hidden;
+             text-overflow: ellipsis;
+             white-space: nowrap;
+         }
 
 
         /* Classes usadas pelo JavaScript para aplicar as cores */
@@ -65,7 +67,62 @@
         /* Estilo para células editáveis (Contagem Loja / Status) */
         [contenteditable="true"]:focus {
             outline: none;
-            box-shadow: 0 0 0 2px #c7d2fe; /* Exemplo de foco suave */
+            box-shadow: 0 0 0 2px #c7d2fe; 
+        }
+        
+        /* ---------------------------------------------------------------- */
+        /* --- ESTILOS RESPONSIVOS: APENAS PARA CELULAR (< 768px) --- */
+        /* ---------------------------------------------------------------- */
+        @media (max-width: 767px) {
+            
+            /* 1. Remove padding e limitações de largura do container principal */
+            .container {
+                padding: 0 !important;
+                max-width: 100% !important;
+            }
+            
+            /* 2. Ajusta a box branca principal (o 'card' do app) para se estender completamente. */
+            /* O padding original (p-6) é substituído por um padding lateral zero. */
+            .container .bg-white {
+                border-radius: 0;
+                border-left: none;
+                border-right: none;
+                /* Remove padding lateral para que o conteúdo ocupe a borda */
+                padding: 1.5rem 0 !important; 
+            }
+            
+            /* 3. Adiciona o padding horizontal de 1rem (o padrão) de volta aos elementos internos que devem ser alinhados (header, botões, navegação). */
+            header, nav, .flex.flex-wrap {
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
+            
+            /* 4. Corrige o padding da navegação para se alinhar ao conteúdo */
+            nav {
+                border-bottom: 1px solid #e5e7eb; /* Restaura a linha do separador */
+                margin: 0 1rem; 
+            }
+            
+            /* 5. Garante que o container da tabela (com scroll) se alinhe ao conteúdo, mas sem margem. */
+            .overflow-x-auto {
+                /* Remove bordas e sombra desnecessárias na borda da tela */
+                border-radius: 0 !important;
+                box-shadow: none !important;
+                border: none !important;
+                /* Adiciona padding interno para a tabela não colar nas laterais */
+                padding-left: 1rem; 
+                padding-right: 1rem;
+            }
+            
+            /* 6. Garante que a célula de diferença não tenha cor de fundo, mas o texto sim, mesmo no mobile */
+            #conferencia-content tr td:nth-child(5) { 
+                background-color: transparent !important;
+            }
+            
+            /* 7. Garante que as células da tabela não quebrem linha, forçando o scroll horizontal do container pai. */
+            .mock-table th, .mock-table td {
+                 white-space: nowrap; 
+            }
         }
         
         /* ---------------------------------------------------------------- */
@@ -75,7 +132,6 @@
             body {
                 margin: 0;
                 padding: 0;
-                /* Define o tamanho da página A4 */
                 width: 210mm; 
                 min-height: 297mm;
             }
@@ -99,9 +155,31 @@
                 font-size: 10pt;
             }
             .mock-table th, .mock-table td {
-                padding: 4px; /* Reduz padding para caber mais */
+                padding: 4px; 
                 border-bottom: 1px solid #ccc;
                 border-right: 1px solid #ccc;
+                /* Remove scrolls/truncamentos forçados na impressão */
+                white-space: normal !important;
+                overflow: visible !important;
+                width: auto !important; 
+                min-width: auto !important;
+                max-width: none !important;
+                /* Remove estilos de display do mobile que podem vazar para o print */
+                display: table-cell !important;
+                text-align: left !important;
+                padding-left: 4px !important;
+            }
+            .mock-table tr {
+                display: table-row !important;
+                border: none !important;
+                padding: 0 !important;
+            }
+            .mock-table thead tr {
+                position: static !important;
+                display: table-row !important;
+            }
+            .mock-table td::before {
+                display: none !important;
             }
             .mock-table th:last-child, .mock-table td:last-child {
                 border-right: none;
@@ -292,8 +370,11 @@
             // Define se a coluna "OBS" (índice 5 da Conferência) deve ser editável
             const isObsEditable = sheetName === "CONFERENCIA";
 
+            // Mantém o container overflow-x-auto para forçar o scroll horizontal da tabela no mobile.
+            const containerClass = 'rounded-lg border border-gray-200 overflow-x-auto shadow-sm';
+            
             let html = `
-                <div class="rounded-lg border border-gray-200 overflow-x-auto shadow-sm">
+                <div class="${containerClass}">
                     <table class="mock-table w-full text-sm" id="${isEditable ? 'contagem-table' : (isObsEditable ? 'conferencia-table' : '')}">
                         <thead class="bg-gray-50 sticky top-0">
                             <tr>`;
@@ -326,6 +407,9 @@
                 for (let i = 0; i < headers.length; i++) {
                     const cellValue = row[i] !== undefined ? row[i] : '';
                     
+                    // NOVO: Adiciona o atributo data-label com o cabeçalho (Mantido, mas não será usado no CSS para não quebrar o layout)
+                    const headerLabel = headers[i]; 
+
                     // Mapeia o índice i (0=A, 1=B, etc.) para a letra da coluna
                     const sheetCol = String.fromCharCode(65 + i);
                     const sheetRange = `${sheetCol}${sheetRowIndex}`;
@@ -343,8 +427,6 @@
                                          onblur="handleCellEdit(this, '${sheetRange}', '${sheetName}')"
                                          data-original-value="${cellValue}"
                                          data-sheet-range="${sheetRange}"`;
-
-                        // REMOVIDA A LÓGICA DO TOOLTIP (title attribute)
                         
                         // Adiciona o keypress apenas para a Contagem Loja (fluxo de escanear)
                         if (sheetName === "CONTAGEM LOJA") {
@@ -356,11 +438,11 @@
                         // O conteúdo da célula é o valor
                         const cellContent = cellValue || '';
 
-                        html += `<td ${editAttributes} class="${cellClasses}">${cellContent}</td>`;
+                        html += `<td ${editAttributes} class="${cellClasses}" data-label="${headerLabel}">${cellContent}</td>`;
 
                     } else {
                         // Células não editáveis
-                        html += `<td>${cellValue}</td>`;
+                        html += `<td data-label="${headerLabel}">${cellValue}</td>`;
                     }
                 }
                 html += `</tr>`;
@@ -389,8 +471,11 @@
              // Renderiza a linha editável que será o primeiro input
              const firstEditableRow = renderEditableRow(sheetName, headers, startRowIndex);
              
+             // Determina a classe do container novamente
+             const containerClass = 'rounded-lg border border-gray-200 overflow-x-auto shadow-sm';
+             
              return `
-                 <div class="rounded-lg border border-gray-200 overflow-x-auto shadow-sm">
+                 <div class="${containerClass}">
                     <table class="mock-table w-full text-sm" id="contagem-table">
                         <thead class="bg-gray-50 sticky top-0">
                             <tr><th>${headers[0]}</th></tr>
@@ -412,6 +497,7 @@
             // Assume que é a aba CONTAGEM LOJA, onde apenas o primeiro item (A) é editável
             const sheetCol = 'A'; // Primeira coluna
             const sheetRange = `${sheetCol}${sheetRowIndex}`;
+            const headerLabel = headers[0];
             
             const editAttributes = `contenteditable="true"
                                     onblur="handleCellEdit(this, '${sheetRange}', '${sheetName}')"
@@ -421,11 +507,11 @@
             
             const cellClasses = 'cursor-text hover:bg-indigo-50/50 focus:bg-indigo-100 border border-transparent focus:border-indigo-400 transition';
 
-            html += `<td ${editAttributes} class="${cellClasses}"></td>`;
+            html += `<td ${editAttributes} class="${cellClasses}" data-label="${headerLabel}"></td>`;
             
             // Adiciona colunas vazias para manter a estrutura, se necessário
             for (let i = 1; i < headers.length; i++) {
-                html += `<td></td>`;
+                html += `<td data-label="${headers[i]}"></td>`; // data-label adicionado aqui também
             }
             
             html += `</tr>`;
@@ -502,16 +588,21 @@
                 
                 // Remove quaisquer classes de cor existentes
                 diffCell.classList.remove('bg-fee2e2', 'text-b91c1c', 'bg-green-100', 'text-green-700');
-
+                
+                // Verifica se está no modo mobile (para remover a cor de fundo)
+                const isMobile = window.matchMedia('(max-width: 767px)').matches;
+                
                 if (isNaN(value) || value === 0) {
                     // Valor Zero ou Vazio (Neutro - sem cor)
                     // Não adiciona classes de cor.
                 } else if (value < 0) {
                     // Regra Vermelha (Negativo)
-                    diffCell.classList.add('bg-fee2e2', 'text-b91c1c');
+                    diffCell.classList.add('text-b91c1c');
+                    if (!isMobile) diffCell.classList.add('bg-fee2e2'); // Adiciona cor de fundo apenas no desktop
                 } else if (value > 0) {
                     // Regra Verde (Positivo)
-                    diffCell.classList.add('bg-green-100', 'text-green-700');
+                    diffCell.classList.add('text-green-700');
+                    if (!isMobile) diffCell.classList.add('bg-green-100'); // Adiciona cor de fundo apenas no desktop
                 }
             });
         }
@@ -692,8 +783,6 @@
                     // Trunca o valor a ser enviado e exibido na célula
                     newValue = newValue.substring(0, MAX_CHARS);
                 }
-                
-                // REMOVIDO: Remoção da atualização do atributo title (tooltip)
             }
 
             // Atualiza o conteúdo visual da célula após a possível truncagem
@@ -931,10 +1020,6 @@
             switchTab('NOTA FISCAL'); 
         });
 
-
-
-
-        
     </script>
 </body>
 </html>
