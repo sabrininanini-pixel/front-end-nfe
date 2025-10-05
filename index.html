@@ -6,16 +6,14 @@
     <title>Conferir Nota Fiscal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
+        /* Estilos Padrão (Desktop/Geral) */
         .mock-table th, .mock-table td {
             padding: 12px;
             text-align: left;
-            /* Alterado: Cor mais escura para a linha horizontal (gray-200) */
             border-bottom: 1px solid #e5e7eb; 
-            /* Novo: Adiciona linha vertical sutil (gray-200) */
             border-right: 1px solid #e5e7eb; 
         }
         
-        /* Regra para remover a linha vertical da última coluna */
         .mock-table th:last-child, .mock-table td:last-child {
             border-right: none;
         }
@@ -30,29 +28,33 @@
             background-color: #f9fafb; /* gray-50 */
         }
 
-        /* ---------------------------------------------------------------- */
-        /* --- Estilos de Edição/Conferência --- */
-        /* ---------------------------------------------------------------- */
+        /* --- Estilos de Edição/Conferência GERAL --- */
         
         /* Estilos base para a coluna Diferença (E - 5ª coluna visível) */
         #conferencia-content tr td:nth-child(5) { 
             font-weight: bold;
-            text-align: center; /* Centraliza o número para melhor visualização */
+            text-align: center; 
         }
 
-        /* Define a largura da coluna Status/OBS (6ª coluna) igual à Quantidade NF (3ª coluna) */
-        #conferencia-content .mock-table th:nth-child(3), 
-        #conferencia-content .mock-table td:nth-child(3),
+        /* Largura fixa e scroll para OBS (6ª coluna) - Padrão */
         #conferencia-content .mock-table th:nth-child(6), 
         #conferencia-content .mock-table td:nth-child(6) {
-             width: 100px; /* Largura fixa */
+             width: 100px; 
              min-width: 100px;
              max-width: 100px;
-             /* REMOVIDO: overflow: hidden; e text-overflow: ellipsis; */
-             /* NOVO: Adiciona scroll horizontal */
              overflow-x: auto;
              white-space: nowrap;
         }
+        /* Aplica a largura fixa também à 3ª coluna (Quantidade NF) no DESKTOP (mantendo o layout original) */
+         #conferencia-content .mock-table th:nth-child(3), 
+         #conferencia-content .mock-table td:nth-child(3) {
+             width: 100px; 
+             min-width: 100px;
+             max-width: 100px;
+             overflow: hidden;
+             text-overflow: ellipsis;
+             white-space: nowrap;
+         }
 
 
         /* Classes usadas pelo JavaScript para aplicar as cores */
@@ -65,7 +67,94 @@
         /* Estilo para células editáveis (Contagem Loja / Status) */
         [contenteditable="true"]:focus {
             outline: none;
-            box-shadow: 0 0 0 2px #c7d2fe; /* Exemplo de foco suave */
+            box-shadow: 0 0 0 2px #c7d2fe; 
+        }
+        
+        /* ---------------------------------------------------------------- */
+        /* --- ESTILOS RESPONSIVOS: APENAS PARA CELULAR (< 768px) --- */
+        /* ---------------------------------------------------------------- */
+        @media (max-width: 767px) {
+            
+            /* 1. Layout Full-Screen: Remove padding lateral do container e do corpo */
+            .container {
+                padding: 0 !important;
+                max-width: 100% !important;
+            }
+            .container > * { 
+                padding-left: 1rem !important; 
+                padding-right: 1rem !important;
+            }
+            .container .bg-white {
+                border-radius: 0;
+                border-left: none;
+                border-right: none;
+            }
+            header {
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
+
+            /* 2. Regras de Colunas (NOTA FISCAL) - Descrição é a 1ª coluna */
+            #dynamic-table-content .mock-table td:nth-child(1),
+            #dynamic-table-content .mock-table th:nth-child(1) {
+                width: 30%;
+                max-width: 30%;
+                min-width: 120px; 
+                white-space: nowrap; /* Impede a quebra de linha */
+                overflow-x: auto; /* Adiciona scroll horizontal */
+                overflow-y: hidden;
+                text-overflow: initial; /* Remove ellipsis */
+            }
+            /* Outras colunas da NOTA FISCAL (Números/Códigos) - Força Scroll na Tabela */
+            #dynamic-table-content .mock-table td:not(:nth-child(1)),
+            #dynamic-table-content .mock-table th:not(:nth-child(1)) {
+                width: auto; 
+                min-width: 80px; 
+                white-space: nowrap; 
+            }
+
+
+            /* 3. Regras de Colunas (CONFERENCIA) - Descrição é a 2ª coluna */
+            #conferencia-content .mock-table td:nth-child(2),
+            #conferencia-content .mock-table th:nth-child(2) {
+                width: 30%;
+                max-width: 30%;
+                min-width: 120px;
+                white-space: nowrap; /* Impede a quebra de linha */
+                overflow-x: auto; /* Adiciona scroll horizontal */
+                overflow-y: hidden;
+                text-overflow: initial; /* Remove ellipsis */
+            }
+
+            /* Colunas de Números da CONFERENCIA (1ª, 3ª, 4ª, 5ª) - Força Scroll na Tabela */
+            #conferencia-content .mock-table td:not(:nth-child(2)):not(:nth-child(6)),
+            #conferencia-content .mock-table th:not(:nth-child(2)):not(:nth-child(6)) {
+                 width: auto;
+                 min-width: 80px;
+                 white-space: nowrap; 
+            }
+            
+            /* Remove a regra de largura fixa para a 3ª coluna que existia no desktop, forçando o min-width de 80px */
+            #conferencia-content .mock-table th:nth-child(3), 
+            #conferencia-content .mock-table td:nth-child(3) {
+                 width: auto; 
+                 min-width: 80px;
+                 max-width: none;
+                 overflow: visible;
+                 text-overflow: initial;
+                 white-space: nowrap;
+            }
+            
+            /* OBS (6ª coluna) - REAFIRMA a regra de scroll na célula (100px) */
+            #conferencia-content .mock-table th:nth-child(6), 
+            #conferencia-content .mock-table td:nth-child(6) {
+                 width: 100px; 
+                 min-width: 100px;
+                 max-width: 100px;
+                 overflow-x: auto;
+                 white-space: nowrap;
+            }
+
         }
         
         /* ---------------------------------------------------------------- */
@@ -75,7 +164,6 @@
             body {
                 margin: 0;
                 padding: 0;
-                /* Define o tamanho da página A4 */
                 width: 210mm; 
                 min-height: 297mm;
             }
@@ -99,9 +187,15 @@
                 font-size: 10pt;
             }
             .mock-table th, .mock-table td {
-                padding: 4px; /* Reduz padding para caber mais */
+                padding: 4px; 
                 border-bottom: 1px solid #ccc;
                 border-right: 1px solid #ccc;
+                /* Remove scrolls/truncamentos forçados na impressão */
+                white-space: normal !important;
+                overflow: visible !important;
+                width: auto !important; 
+                min-width: auto !important;
+                max-width: none !important;
             }
             .mock-table th:last-child, .mock-table td:last-child {
                 border-right: none;
@@ -343,8 +437,6 @@
                                          onblur="handleCellEdit(this, '${sheetRange}', '${sheetName}')"
                                          data-original-value="${cellValue}"
                                          data-sheet-range="${sheetRange}"`;
-
-                        // REMOVIDA A LÓGICA DO TOOLTIP (title attribute)
                         
                         // Adiciona o keypress apenas para a Contagem Loja (fluxo de escanear)
                         if (sheetName === "CONTAGEM LOJA") {
@@ -692,8 +784,6 @@
                     // Trunca o valor a ser enviado e exibido na célula
                     newValue = newValue.substring(0, MAX_CHARS);
                 }
-                
-                // REMOVIDO: Remoção da atualização do atributo title (tooltip)
             }
 
             // Atualiza o conteúdo visual da célula após a possível truncagem
@@ -931,10 +1021,6 @@
             switchTab('NOTA FISCAL'); 
         });
 
-
-
-
-        
     </script>
 </body>
 </html>
