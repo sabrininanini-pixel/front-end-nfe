@@ -6,14 +6,16 @@
     <title>Conferir Nota Fiscal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Estilos Padrão (Desktop/Geral) */
         .mock-table th, .mock-table td {
             padding: 12px;
             text-align: left;
+            /* Alterado: Cor mais escura para a linha horizontal (gray-200) */
             border-bottom: 1px solid #e5e7eb; 
+            /* Novo: Adiciona linha vertical sutil (gray-200) */
             border-right: 1px solid #e5e7eb; 
         }
         
+        /* Regra para remover a linha vertical da última coluna */
         .mock-table th:last-child, .mock-table td:last-child {
             border-right: none;
         }
@@ -28,33 +30,29 @@
             background-color: #f9fafb; /* gray-50 */
         }
 
-        /* --- Estilos de Edição/Conferência GERAL --- */
+        /* ---------------------------------------------------------------- */
+        /* --- Estilos de Edição/Conferência --- */
+        /* ---------------------------------------------------------------- */
         
         /* Estilos base para a coluna Diferença (E - 5ª coluna visível) */
         #conferencia-content tr td:nth-child(5) { 
             font-weight: bold;
-            text-align: center; 
+            text-align: center; /* Centraliza o número para melhor visualização */
         }
 
-        /* Largura fixa e scroll para OBS (6ª coluna) - Padrão */
+        /* Define a largura da coluna Status/OBS (6ª coluna) igual à Quantidade NF (3ª coluna) */
+        #conferencia-content .mock-table th:nth-child(3), 
+        #conferencia-content .mock-table td:nth-child(3),
         #conferencia-content .mock-table th:nth-child(6), 
         #conferencia-content .mock-table td:nth-child(6) {
-             width: 100px; 
+             width: 100px; /* Largura fixa */
              min-width: 100px;
              max-width: 100px;
+             /* REMOVIDO: overflow: hidden; e text-overflow: ellipsis; */
+             /* NOVO: Adiciona scroll horizontal */
              overflow-x: auto;
              white-space: nowrap;
         }
-        /* Aplica a largura fixa também à 3ª coluna (Quantidade NF) no DESKTOP (mantendo o layout original) */
-         #conferencia-content .mock-table th:nth-child(3), 
-         #conferencia-content .mock-table td:nth-child(3) {
-             width: 100px; 
-             min-width: 100px;
-             max-width: 100px;
-             overflow: hidden;
-             text-overflow: ellipsis;
-             white-space: nowrap;
-         }
 
 
         /* Classes usadas pelo JavaScript para aplicar as cores */
@@ -67,127 +65,7 @@
         /* Estilo para células editáveis (Contagem Loja / Status) */
         [contenteditable="true"]:focus {
             outline: none;
-            box-shadow: 0 0 0 2px #c7d2fe; 
-        }
-        
-        /* ---------------------------------------------------------------- */
-        /* --- ESTILOS RESPONSIVOS: APENAS PARA CELULAR (< 768px) --- */
-        /* ---------------------------------------------------------------- */
-        @media (max-width: 767px) {
-            
-            /* 1. Layout Base (Card View): Transforma a tabela em um conjunto de blocos */
-            .mock-table, .mock-table thead, .mock-table tbody, .mock-table th, .mock-table td, .mock-table tr {
-                display: block;
-            }
-
-            /* Remove a necessidade de cabeçalhos no topo (eles se tornam o label do bloco) */
-            .mock-table thead tr {
-                position: absolute;
-                top: -9999px;
-                left: -9999px;
-            }
-            
-            /* Define a linha como um bloco visível (o "Card") */
-            .mock-table tr {
-                border: 1px solid #e5e7eb;
-                margin-bottom: 0.5rem;
-                padding: 1rem;
-                display: flex; /* Flexbox para organizar os campos dentro do card */
-                flex-direction: column;
-            }
-
-            /* 2. Estilo dos Itens dentro do Card */
-            .mock-table td {
-                border: none; /* Remove bordas internas */
-                padding: 0.5rem 0;
-                position: relative;
-                padding-left: 50%; /* Espaço para o label */
-                text-align: right !important; /* Alinhamento do valor */
-                overflow: hidden; /* Garantir que o valor não vaze */
-                white-space: nowrap; /* Impede a quebra de linha para a maioria dos valores */
-                text-overflow: ellipsis; 
-                line-height: 1.5; /* Garante espaçamento limpo */
-            }
-
-            /* Adiciona o LABEL (cabeçalho da coluna) como um pseudo-elemento */
-            .mock-table td::before {
-                content: attr(data-label);
-                position: absolute;
-                left: 0.5rem;
-                width: 45%;
-                padding-right: 10px;
-                white-space: nowrap;
-                text-align: left;
-                font-weight: bold;
-                color: #4b5563;
-            }
-
-            /* 3. Regras Específicas de Scroll/Quebra de Linha */
-
-            /* --- Descrição (Células que precisam de scroll horizontal) --- */
-            /* NOTA FISCAL: 1ª coluna (index 0) */
-            /* CONFERENCIA: 2ª coluna (index 1) */
-            #dynamic-table-content .mock-table tr td:nth-child(1), 
-            #conferencia-content .mock-table tr td:nth-child(2) {
-                white-space: nowrap !important; /* MANTÉM NA MESMA LINHA */
-                overflow-x: auto !important;    /* Adiciona scroll HORIZONTAL */
-                overflow-y: hidden;
-                text-overflow: initial;
-                text-align: left !important;    /* Alinhamento do texto rolável */
-                padding-left: 0.5rem !important; /* Remove o padding do label para o scroll ser total */
-                width: 100%;
-            }
-            /* Remove o label para os campos que ocupam a linha inteira com scroll */
-            #dynamic-table-content .mock-table tr td:nth-child(1)::before, 
-            #conferencia-content .mock-table tr td:nth-child(2)::before {
-                display: none;
-            }
-
-            /* --- OBS (Célula que precisa de scroll horizontal, mas é a última) --- */
-             #conferencia-content .mock-table tr td:nth-child(6) {
-                white-space: nowrap !important; 
-                overflow-x: auto !important;    
-                overflow-y: hidden;
-                text-overflow: initial;
-                text-align: left !important;    
-                padding-left: 0.5rem !important; 
-                width: 100%;
-                /* Garante que o atributo de desktop de largura 100px seja ignorado */
-                width: auto !important;
-                min-width: auto !important;
-                max-width: none !important;
-            }
-            #conferencia-content .mock-table tr td:nth-child(6)::before {
-                display: none;
-            }
-            
-            /* 4. Layout Full-Screen */
-            .container {
-                padding: 0 !important;
-                max-width: 100% !important;
-            }
-            .container > * { 
-                padding-left: 1rem !important; 
-                padding-right: 1rem !important;
-            }
-            .container .bg-white {
-                border-radius: 0;
-                border-left: none;
-                border-right: none;
-            }
-            header {
-                padding-left: 1rem;
-                padding-right: 1rem;
-            }
-            /* Remove o overflow-x-auto do container da tabela, pois agora o scroll é dentro da célula */
-            .overflow-x-auto {
-                overflow-x: visible !important;
-            }
-            
-            /* Remove o estilo de cor da célula de diferença para evitar que pinte o fundo do card */
-            #conferencia-content tr td:nth-child(5) { 
-                background-color: transparent !important;
-            }
+            box-shadow: 0 0 0 2px #c7d2fe; /* Exemplo de foco suave */
         }
         
         /* ---------------------------------------------------------------- */
@@ -197,6 +75,7 @@
             body {
                 margin: 0;
                 padding: 0;
+                /* Define o tamanho da página A4 */
                 width: 210mm; 
                 min-height: 297mm;
             }
@@ -220,31 +99,9 @@
                 font-size: 10pt;
             }
             .mock-table th, .mock-table td {
-                padding: 4px; 
+                padding: 4px; /* Reduz padding para caber mais */
                 border-bottom: 1px solid #ccc;
                 border-right: 1px solid #ccc;
-                /* Remove scrolls/truncamentos forçados na impressão */
-                white-space: normal !important;
-                overflow: visible !important;
-                width: auto !important; 
-                min-width: auto !important;
-                max-width: none !important;
-                /* Remove estilos de display do mobile que podem vazar para o print */
-                display: table-cell !important;
-                text-align: left !important;
-                padding-left: 4px !important;
-            }
-            .mock-table tr {
-                display: table-row !important;
-                border: none !important;
-                padding: 0 !important;
-            }
-            .mock-table thead tr {
-                position: static !important;
-                display: table-row !important;
-            }
-            .mock-table td::before {
-                display: none !important;
             }
             .mock-table th:last-child, .mock-table td:last-child {
                 border-right: none;
@@ -435,12 +292,8 @@
             // Define se a coluna "OBS" (índice 5 da Conferência) deve ser editável
             const isObsEditable = sheetName === "CONFERENCIA";
 
-            // Se for mobile, removemos o container overflow-x-auto, pois o scroll é interno à célula.
-            const isMobile = window.matchMedia('(max-width: 767px)').matches;
-            const containerClass = isMobile ? 'rounded-lg border border-gray-200 shadow-sm' : 'rounded-lg border border-gray-200 overflow-x-auto shadow-sm';
-            
             let html = `
-                <div class="${containerClass}">
+                <div class="rounded-lg border border-gray-200 overflow-x-auto shadow-sm">
                     <table class="mock-table w-full text-sm" id="${isEditable ? 'contagem-table' : (isObsEditable ? 'conferencia-table' : '')}">
                         <thead class="bg-gray-50 sticky top-0">
                             <tr>`;
@@ -473,9 +326,6 @@
                 for (let i = 0; i < headers.length; i++) {
                     const cellValue = row[i] !== undefined ? row[i] : '';
                     
-                    // NOVO: Adiciona o atributo data-label com o cabeçalho
-                    const headerLabel = headers[i]; 
-
                     // Mapeia o índice i (0=A, 1=B, etc.) para a letra da coluna
                     const sheetCol = String.fromCharCode(65 + i);
                     const sheetRange = `${sheetCol}${sheetRowIndex}`;
@@ -493,6 +343,8 @@
                                          onblur="handleCellEdit(this, '${sheetRange}', '${sheetName}')"
                                          data-original-value="${cellValue}"
                                          data-sheet-range="${sheetRange}"`;
+
+                        // REMOVIDA A LÓGICA DO TOOLTIP (title attribute)
                         
                         // Adiciona o keypress apenas para a Contagem Loja (fluxo de escanear)
                         if (sheetName === "CONTAGEM LOJA") {
@@ -504,11 +356,11 @@
                         // O conteúdo da célula é o valor
                         const cellContent = cellValue || '';
 
-                        html += `<td ${editAttributes} class="${cellClasses}" data-label="${headerLabel}">${cellContent}</td>`;
+                        html += `<td ${editAttributes} class="${cellClasses}">${cellContent}</td>`;
 
                     } else {
                         // Células não editáveis
-                        html += `<td data-label="${headerLabel}">${cellValue}</td>`;
+                        html += `<td>${cellValue}</td>`;
                     }
                 }
                 html += `</tr>`;
@@ -537,12 +389,8 @@
              // Renderiza a linha editável que será o primeiro input
              const firstEditableRow = renderEditableRow(sheetName, headers, startRowIndex);
              
-             // Determina a classe do container novamente
-             const isMobile = window.matchMedia('(max-width: 767px)').matches;
-             const containerClass = isMobile ? 'rounded-lg border border-gray-200 shadow-sm' : 'rounded-lg border border-gray-200 overflow-x-auto shadow-sm';
-             
              return `
-                 <div class="${containerClass}">
+                 <div class="rounded-lg border border-gray-200 overflow-x-auto shadow-sm">
                     <table class="mock-table w-full text-sm" id="contagem-table">
                         <thead class="bg-gray-50 sticky top-0">
                             <tr><th>${headers[0]}</th></tr>
@@ -564,7 +412,6 @@
             // Assume que é a aba CONTAGEM LOJA, onde apenas o primeiro item (A) é editável
             const sheetCol = 'A'; // Primeira coluna
             const sheetRange = `${sheetCol}${sheetRowIndex}`;
-            const headerLabel = headers[0];
             
             const editAttributes = `contenteditable="true"
                                     onblur="handleCellEdit(this, '${sheetRange}', '${sheetName}')"
@@ -574,11 +421,11 @@
             
             const cellClasses = 'cursor-text hover:bg-indigo-50/50 focus:bg-indigo-100 border border-transparent focus:border-indigo-400 transition';
 
-            html += `<td ${editAttributes} class="${cellClasses}" data-label="${headerLabel}"></td>`;
+            html += `<td ${editAttributes} class="${cellClasses}"></td>`;
             
             // Adiciona colunas vazias para manter a estrutura, se necessário
             for (let i = 1; i < headers.length; i++) {
-                html += `<td data-label="${headers[i]}"></td>`; // data-label adicionado aqui também
+                html += `<td></td>`;
             }
             
             html += `</tr>`;
@@ -655,20 +502,16 @@
                 
                 // Remove quaisquer classes de cor existentes
                 diffCell.classList.remove('bg-fee2e2', 'text-b91c1c', 'bg-green-100', 'text-green-700');
-                // IMPORTANTE: Adiciona a cor de texto no mobile para indicar status, já que a cor de fundo foi removida no CSS para o card.
-                const isMobile = window.matchMedia('(max-width: 767px)').matches;
-                
+
                 if (isNaN(value) || value === 0) {
                     // Valor Zero ou Vazio (Neutro - sem cor)
                     // Não adiciona classes de cor.
                 } else if (value < 0) {
                     // Regra Vermelha (Negativo)
-                    diffCell.classList.add('text-b91c1c');
-                    if (!isMobile) diffCell.classList.add('bg-fee2e2');
+                    diffCell.classList.add('bg-fee2e2', 'text-b91c1c');
                 } else if (value > 0) {
                     // Regra Verde (Positivo)
-                    diffCell.classList.add('text-green-700');
-                    if (!isMobile) diffCell.classList.add('bg-green-100');
+                    diffCell.classList.add('bg-green-100', 'text-green-700');
                 }
             });
         }
@@ -849,6 +692,8 @@
                     // Trunca o valor a ser enviado e exibido na célula
                     newValue = newValue.substring(0, MAX_CHARS);
                 }
+                
+                // REMOVIDO: Remoção da atualização do atributo title (tooltip)
             }
 
             // Atualiza o conteúdo visual da célula após a possível truncagem
@@ -1086,6 +931,10 @@
             switchTab('NOTA FISCAL'); 
         });
 
+
+
+
+        
     </script>
 </body>
 </html>
