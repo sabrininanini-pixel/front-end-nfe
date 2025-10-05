@@ -10,8 +10,9 @@
         .mock-table th, .mock-table td {
             padding: 12px;
             text-align: left;
-            border-bottom: 1px solid #e5e7eb; 
-            border-right: 1px solid #e5e7eb; 
+            border-bottom: 1px solid #e5e7eb; /* gray-200 */
+            border-right: 1px solid #e5e7eb; /* gray-200 */
+            white-space: nowrap; /* CORREÇÃO 1: Força o conteúdo a ficar em linha única (essencial para scroll horizontal em Desktop/Mobile) */
         }
         
         .mock-table th:last-child, .mock-table td:last-child {
@@ -43,9 +44,9 @@
              min-width: 100px;
              max-width: 100px;
              overflow: hidden;
-             white-space: nowrap;
+             text-overflow: ellipsis; /* Mantém o ellipsis no desktop, mas o white-space: nowrap pode afetar a visibilidade */
         }
-        /* Aplica a largura fixa também à 3ª coluna (Quantidade NF) no DESKTOP (mantendo o layout original) */
+        /* Aplica a largura fixa também à 3ª coluna (Quantidade NF) no DESKTOP */
          #conferencia-content .mock-table th:nth-child(3), 
          #conferencia-content .mock-table td:nth-child(3) {
              width: 100px; 
@@ -53,8 +54,7 @@
              max-width: 100px;
              overflow: hidden;
              text-overflow: ellipsis;
-             white-space: nowrap;
-         }
+        }
 
 
         /* Classes usadas pelo JavaScript para aplicar as cores */
@@ -110,11 +110,8 @@
                 padding-right: 1rem;
             }
             
-            /* 6. Garante que a célula de diferença não tenha cor de fundo, mas o texto sim, mesmo no mobile */
-            #conferencia-content tr td:nth-child(5) { 
-                background-color: transparent !important;
-            }
-            
+            /* REMOVIDO: Regra que forçava o fundo transparente na diferença (CORREÇÃO 2) */
+
             /* ------------------------------------------- */
             /* --- REGRAS PARA SCROLL E LARGURA DE 50% --- */
             /* ------------------------------------------- */
@@ -123,11 +120,6 @@
             .mock-table {
                 width: max-content !important; /* ESSENCIAL: Força a tabela a ser mais larga que a tela */
                 min-width: 100%; 
-            }
-            
-            /* Garante que o conteúdo não quebre linha */
-            .mock-table th, .mock-table td {
-                 white-space: nowrap; 
             }
             
             /* 8. Regra para a Coluna 'Descrição' (50% da largura em mobile) */
@@ -621,20 +613,15 @@
                 // Remove quaisquer classes de cor existentes
                 diffCell.classList.remove('bg-fee2e2', 'text-b91c1c', 'bg-green-100', 'text-green-700');
                 
-                // Verifica se está no modo mobile (para remover a cor de fundo)
-                const isMobile = window.matchMedia('(max-width: 767px)').matches;
-                
+                // CORREÇÃO 2: Aplica a cor de fundo (background) incondicionalmente.
                 if (isNaN(value) || value === 0) {
                     // Valor Zero ou Vazio (Neutro - sem cor)
-                    // Não adiciona classes de cor.
                 } else if (value < 0) {
                     // Regra Vermelha (Negativo)
-                    diffCell.classList.add('text-b91c1c');
-                    if (!isMobile) diffCell.classList.add('bg-fee2e2'); // Adiciona cor de fundo apenas no desktop
+                    diffCell.classList.add('text-b91c1c', 'bg-fee2e2'); // Aplica as duas classes
                 } else if (value > 0) {
                     // Regra Verde (Positivo)
-                    diffCell.classList.add('text-green-700');
-                    if (!isMobile) diffCell.classList.add('bg-green-100'); // Adiciona cor de fundo apenas no desktop
+                    diffCell.classList.add('text-green-700', 'bg-green-100'); // Aplica as duas classes
                 }
             });
         }
