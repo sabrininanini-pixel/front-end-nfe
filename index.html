@@ -7,8 +7,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         
-        /* --- CORREÇÃO CRÍTICA DO SCROLL: Define a largura da tabela pelo conteúdo em TODOS os dispositivos --- */
-        /* Isso força a tabela a se expandir além de 100% e ativa o scroll horizontal no pai (.overflow-x-auto) */
+        /* --- CORREÇÃO FINAL DO SCROLL: Força a tabela a ter a largura do CONTEÚDO --- */
+        /* Isso é o que ativa o scroll horizontal no pai (.overflow-x-auto) */
         .mock-table {
             width: max-content !important; 
         }
@@ -53,12 +53,11 @@
             text-align: center;
         }
 
-        /* Define a largura da coluna Status (6ª coluna) e Quantidade NF (3ª coluna) */
+        /* Define a largura mínima para Quantidade NF (3ª coluna) e Status (6ª coluna) */
         #conferencia-content .mock-table th:nth-child(3), 
         #conferencia-content .mock-table td:nth-child(3),
         #conferencia-content .mock-table th:nth-child(6), 
         #conferencia-content .mock-table td:nth-child(6) {
-             /* Mantido o min-width para evitar colunas muito estreitas */
              min-width: 100px;
         }
 
@@ -136,7 +135,7 @@
                 min-width: 250px !important; 
             }
             
-            /* 7. Colunas de Quantidade - Removidas as larguras fixas (width: 100px) no mobile para permitir o 'nowrap' */
+            /* 7. Colunas de Quantidade - Permite que 'nowrap' funcione */
              #conferencia-content .mock-table th:nth-child(6), 
              #conferencia-content .mock-table td:nth-child(6), 
              #conferencia-content .mock-table th:nth-child(3), 
@@ -172,7 +171,7 @@
 
             /* Garante que a tabela use 100% da largura do A4 */
             .mock-table {
-                width: 100%;
+                width: 100% !important;
                 font-size: 10pt;
             }
             .mock-table th, .mock-table td {
@@ -364,9 +363,10 @@
             const isStatusEditable = sheetName === "CONFERENCIA";
 
             // O contêiner pai mantém o overflow-x-auto para que o scroll horizontal funcione no PC e Mobile.
+            // A classe 'w-full' foi REMOVIDA da tag <table> para evitar conflito com 'width: max-content'
             let html = `
                 <div class="rounded-lg border border-gray-200 overflow-x-auto shadow-sm">
-                    <table class="mock-table w-full text-sm" id="${isEditable ? 'contagem-table' : (isStatusEditable ? 'conferencia-table' : '')}">
+                    <table class="mock-table text-sm" id="${isEditable ? 'contagem-table' : (isStatusEditable ? 'conferencia-table' : '')}">
                         <thead class="bg-gray-50 sticky top-0">
                             <tr>`;
             
@@ -453,7 +453,7 @@
              
              return `
                  <div class="rounded-lg border border-gray-200 overflow-x-auto shadow-sm">
-                    <table class="mock-table w-full text-sm" id="contagem-table">
+                    <table class="mock-table text-sm" id="contagem-table">
                         <thead class="bg-gray-50 sticky top-0">
                             <tr><th>${headers[0]}</th></tr>
                         </thead>
