@@ -6,6 +6,13 @@
     <title>Conferir Nota Fiscal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
+        
+        /* --- CORREÇÃO CRÍTICA DO SCROLL: Define a largura da tabela pelo conteúdo em TODOS os dispositivos --- */
+        /* Isso força a tabela a se expandir além de 100% e ativa o scroll horizontal no pai (.overflow-x-auto) */
+        .mock-table {
+            width: max-content !important; 
+        }
+
         /* Estilos Padrão (Desktop/Geral) */
         .mock-table th, .mock-table td {
             padding: 12px;
@@ -13,12 +20,12 @@
             border-bottom: 1px solid #e5e7eb; 
             border-right: 1px solid #e5e7eb; 
             
-            /* --- SCROLL DA TABELA ATIVO (para visualizar conteúdo longo sem truncamento) --- */
+            /* --- SCROLL DA TABELA ATIVO: Força o conteúdo a ficar em uma linha --- */
             white-space: nowrap; 
             
-            /* --- CORREÇÃO: Garante que o conteúdo não seja substituído por '...' --- */
+            /* --- VISUALIZAÇÃO COMPLETA: Garante que o conteúdo não seja substituído por '...' --- */
             text-overflow: clip; 
-            overflow: visible; /* Garante visibilidade e força o scroll no contêiner pai */
+            overflow: visible; 
         }
         
         /* Regra para remover a linha vertical da última coluna */
@@ -51,12 +58,8 @@
         #conferencia-content .mock-table td:nth-child(3),
         #conferencia-content .mock-table th:nth-child(6), 
         #conferencia-content .mock-table td:nth-child(6) {
-             width: 100px; /* Largura fixa para ambas */
+             /* Mantido o min-width para evitar colunas muito estreitas */
              min-width: 100px;
-             max-width: 100px;
-             overflow: hidden; 
-             text-overflow: clip; /* Garante que não tenha o '...' */
-             white-space: nowrap;
         }
 
 
@@ -85,7 +88,7 @@
         }
         
         /* ---------------------------------------------------------------- */
-        /* --- CORREÇÃO PADDING RESPONSIVO: APENAS PARA CELULAR (< 768px) --- */
+        /* --- PADDING RESPONSIVO (Apenas para celular < 768px) --- */
         /* ---------------------------------------------------------------- */
         @media (max-width: 767px) {
             
@@ -104,7 +107,7 @@
             }
             
             /* 3. Adiciona o padding horizontal de 1rem de volta aos elementos internos que devem ser alinhados (header, botões, navegação). */
-            header, nav, .flex.flex-wrap {
+            header, nav, .flex.flex-wrap, #content-stack {
                 padding-left: 1rem;
                 padding-right: 1rem;
             }
@@ -120,17 +123,12 @@
                 border-radius: 0 !important;
                 box-shadow: none !important;
                 border: none !important;
-                padding-left: 1rem; 
-                padding-right: 1rem;
+                /* Remove o padding lateral do overflow-x-auto, pois o pai #content-stack já tem */
+                padding-left: 0; 
+                padding-right: 0;
             }
             
-            /* 6. Garante que a tabela use o espaço que precisa, forçando o scroll horizontal no pai (.overflow-x-auto) */
-            .mock-table {
-                width: max-content !important; 
-                min-width: 100%; 
-            }
-            
-            /* 7. Regra para a Coluna 'Descrição' (50% da largura em mobile) */
+            /* 6. Regra para a Coluna 'Descrição' (para dar mais espaço em mobile) */
             #dynamic-table-content .mock-table th:nth-child(1),
             #dynamic-table-content .mock-table td:nth-child(1),
             #conferencia-content .mock-table th:nth-child(2),
@@ -138,13 +136,12 @@
                 min-width: 250px !important; 
             }
             
-            /* 8. Desativa a largura fixa (100px) para QTD NF e OBS no mobile, deixando-as flexíveis */
+            /* 7. Colunas de Quantidade - Removidas as larguras fixas (width: 100px) no mobile para permitir o 'nowrap' */
              #conferencia-content .mock-table th:nth-child(6), 
              #conferencia-content .mock-table td:nth-child(6), 
              #conferencia-content .mock-table th:nth-child(3), 
              #conferencia-content .mock-table td:nth-child(3) { 
                  width: auto !important; 
-                 min-width: 100px; 
                  max-width: none !important;
              }
         }
@@ -981,10 +978,6 @@
             switchTab('NOTA FISCAL'); 
         });
 
-
-
-
-        
     </script>
 </body>
 </html>
