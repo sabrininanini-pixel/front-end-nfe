@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conferir Nota Fiscal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .mock-table th, .mock-table td {
+            padding: 12px;
+            text-align: left;
+            /* Alterado: Cor mais escura para a linha horizontal (gray-200) */
+            border-bottom: 1px solid #e5e7eb; 
+            /* Novo: Adiciona linha vertical sutil (gray-200) */
+            border-right: 1px solid #e5e7eb; 
+        }
+        
+        /* Regra para remover a linha vertical da última coluna */
+        .mock-table th:last-child, .mock-table td:last-child {
+            border-right: none;
+        }
+
+        .mock-table th {
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #4b5563; /* gray-600 */
+        }
+        .mock-table tr:hover {
+            background-color: #f9fafb; /* gray-50 */
+        }
+
+        /* ---------------------------------------------------------------- */
+        /* --- Estilos de Edição/Conferência --- */
+        /* ---------------------------------------------------------------- */
+        
+        /* Estilos base para a coluna Diferença (E - 5ª coluna visível) */
+        #conferencia-content tr td:nth-child(5) { 
+            font-weight: bold;
+            text-align: center; /* Centraliza o número para melhor visualização */
+        }
+
+        /* Define a largura da coluna Status (6ª coluna) igual à Quantidade NF (3ª coluna) */
+        #conferencia-content .mock-table th:nth-child(3), 
+        #conferencia-content .mock-table td:nth-child(3),
+        #conferencia-content .mock-table th:nth-child(6), 
+        #conferencia-content .mock-table td:nth-child(6) {
+             width: 100px; /* Largura fixa para ambas */
+             min-width: 100px;
+             max-width: 100px;
+             overflow: hidden;
+             text-overflow: ellipsis;
+             white-space: nowrap;
+        }
+
+
+        /* Classes usadas pelo JavaScript para aplicar as cores */
+        .bg-fee2e2 { background-color: #fee2e2; } /* Vermelho suave (red-100) */
+        .text-b91c1c { color: #b91c1c; } /* Vermelho escuro (red-700) */
+        .bg-green-100 { background-color: #d1fae5; } /* Verde suave */
+        .text-green-700 { color: #047857; } /* Verde escuro */
+
+
+        /* Estilo para células editáveis (Contagem Loja / Status) */
+        [contenteditable="true"]:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px #c7d2fe; /* Exemplo de foco suave */
+        }
+        
+        /* ---------------------------------------------------------------- */
+        /* --- Estilos de Impressão (A4) --- */
+        /* ---------------------------------------------------------------- */
+        @media print {
+            body {
+                margin: 0;
+                padding: 0;
+                /* Define o tamanho da página A4 */
+                width: 210mm; 
+                min-height: 297mm;
+            }
+
+            /* Esconde elementos não essenciais para a impressão */
+            .container, .bg-white, .shadow-lg {
+                box-shadow: none !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                width: 100% !important;
+                max-width: none !important;
+                border: none !important;
+            }
+            header, nav, #paste-modal, #notifications-container, .print-hidden {
+                display: none !important;
+            }
+
+            /* Garante que a tabela use 100% da largura do A4 */
+            .mock-table {
+                width: 100%;
+                font-size: 10pt;
+            }
+            .mock-table th, .mock-table td {
+                padding: 4px; /* Reduz padding para caber mais */
+                border-bottom: 1px solid #ccc;
+                border-right: 1px solid #ccc;
+            }
+            .mock-table th:last-child, .mock-table td:last-child {
+                border-right: none;
+            }
+            
+        }
+
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+    <div class="container mx-auto p-4 md:p-8">
+        <header class="mb-6 print-hidden">
+            <h1 class="text-3xl font-extrabold text-gray-900">
+                Conferir Nota Fiscal
+            </h1>
+        </header>
+
+        <div class="bg-white rounded-xl shadow-lg border border-gray-100 p-6">
+
+            <nav class="flex border-b border-gray-200 print-hidden">
+                <button data-tab="NOTA FISCAL" class="tab-button px-4 py-3 text-sm font-medium border-b-2 border-indigo-600 text-indigo-600 transition-colors duration-150">NOTA FISCAL</button>
+                <button data-tab="CONTAGEM LOJA" class="tab-button px-4 py-3 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 transition-colors duration-150">CONTAGEM LOJA</button>
+                <button data-tab="CONFERENCIA" class="tab-button px-4 py-3 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 transition-colors duration-150">CONFERENCIA</button>
+            </nav>
+
+            <div id="content-stack" class="pt-6">
+            </div>
+            
+        </div>
+    </div>
+
+    <div id="paste-modal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 transition-opacity duration-300 print-hidden">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-lg mx-4 p-6">
+            <h3 class="text-lg font-bold mb-4">Colar Chave de Acesso (44 dígitos)</h3>
+            <textarea id="chave-acesso-input" class="w-full h-24 p-3 border border-gray-300 rounded-lg resize-none text-sm font-mono focus:ring-indigo-500 focus:border-indigo-500" placeholder="Cole a Chave de Acesso (44 dígitos) aqui..."></textarea>
+            <div class="flex justify-end space-x-3 mt-4">
+                <button onclick="hidePasteModal()" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition duration-150">Cancelar</button>
+                <button onclick="importarXMLPorChave()" class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition duration-150">Importar XML por Chave</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="notifications-container" class="fixed bottom-4 right-4 space-y-2 z-50 print-hidden">
+    </div>
+
+    <script>
+        // --- Variáveis de Configuração ---
+        const BACKEND_URL = "http://localhost:8080";
+        const USER_ID = "web-user-123";
+        
+        // --- Gerenciamento de Abas ---
+        const tabButtons = document.querySelectorAll('.tab-button');
+        const contentStack = document.getElementById('content-stack');
+
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => switchTab(button.dataset.tab));
+        });
+
+        /**
+         * Altera a aba ativa e carrega o conteúdo.
+         * @param {string} sheetName O nome da aba (que é também o nome da planilha no Sheets).
+         */
+        function switchTab(sheetName) {
+            // 1. Atualiza o estilo dos botões
+            tabButtons.forEach(btn => {
+                if (btn.dataset.tab === sheetName) {
+                    btn.classList.add('border-indigo-600', 'text-indigo-600');
+                    btn.classList.remove('border-transparent', 'text-gray-500', 'hover:border-gray-300', 'hover:text-gray-700');
+                } else {
+                    btn.classList.remove('border-indigo-600', 'text-indigo-600');
+                    btn.classList.add('border-transparent', 'text-gray-500', 'hover:border-gray-300', 'hover:text-gray-700');
+                }
+            });
+
+            // 2. Limpa o conteúdo e define o placeholder de carregamento
+            contentStack.innerHTML = `<div class="text-center py-10 text-gray-500">Carregando dados de ${sheetName}...</div>`;
+            
+            // 3. Renderiza o layout específico da aba (se houver)
+            if (sheetName === "NOTA FISCAL") {
+                contentStack.innerHTML = renderNotaFiscalLayout();
+            } else if (sheetName === "CONTAGEM LOJA") {
+                contentStack.innerHTML = renderContagemLojaLayout();
+            } else if (sheetName === "CONFERENCIA") {
+                contentStack.innerHTML = renderConferenciaLayout();
+            }
+            
+            // 4. Inicia a busca de dados no backend
+            loadTabContent(sheetName);
+        }
+
+        // ÍCONE DE DOCUMENTO (REPETIDO)
+        const documentIcon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>`;
+        const printerIcon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m-1-5a1 1 0 100-2 1 1 0 000 2zm10 0a1 1 0 100-2 1 1 0 000 2zm-4 4h4v2a2 2 0 01-2 2h-4a2 2 0 01-2-2v-2h4z" /></svg>`;
+
+
+        /**
+         * Retorna o HTML completo da aba NOTA FISCAL (botões + placeholder da tabela).
+         */
+        function renderNotaFiscalLayout() {
+            return `
+                <div class="flex flex-wrap gap-3 pb-4 mb-4 border-b border-gray-200 print-hidden">
+                    <label for="xml-file-upload" class="flex items-center space-x-2 px-4 py-2 bg-gray-100 text-gray-800 rounded-lg shadow-sm hover:bg-gray-200 transition duration-150 cursor-pointer text-sm font-medium border border-gray-300">
+                        <span class="text-orange-600">${documentIcon}</span>
+                        <span>Importar Nota Fiscal (XML)</span>
+                    </label>
+                    <input type="file" id="xml-file-upload" accept=".xml" class="hidden" onchange="handleFileUploadChange(event)">
+                    
+                    <button id="show-paste-modal" onclick="showPasteModal()" class="flex items-center space-x-2 px-4 py-2 bg-gray-100 text-gray-800 rounded-lg shadow-sm hover:bg-gray-200 transition duration-150 text-sm font-medium border border-gray-300">
+                        <span class="text-yellow-600">${documentIcon}</span>
+                        <span>Importar por Chave de Acesso</span>
+                    </button>
+                    
+                    <button onclick="confirmClearAllSheets()" class="flex items-center space-x-2 px-4 py-2 bg-red-50 text-red-700 rounded-lg shadow-sm hover:bg-red-100 transition duration-150 text-sm font-medium border border-red-200">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-2 0v6a1 1 0 102 0V7z" clip-rule="evenodd" /></svg>
+                        <span>Apagar Dados</span>
+                    </button>
+                </div>
+                <div id="dynamic-table-content">
+                    <p class="text-center text-gray-400 py-10">Use o botão de importação (XML) para carregar dados nesta aba.</p>
+                </div>
+            `;
+        }
+
+        /**
+         * Retorna o HTML completo da aba CONTAGEM LOJA.
+         */
+        function renderContagemLojaLayout() {
+            return `
+                <div id="contagem-loja-content">
+                    <div class="p-4 bg-yellow-50 border border-yellow-200 rounded-lg mb-4 print-hidden">
+                        <p class="font-semibold text-yellow-800 text-lg">Escanear abaixo</p>
+                    </div>
+                    <div id="dynamic-table-content-contagem">
+                        <p class="text-center text-gray-400 py-10">Carregando dados...</p>
+                    </div>
+                </div>
+            `;
+        }
+        
+        /**
+         * Retorna o HTML completo da aba CONFERENCIA (com botão de impressão).
+         */
+        function renderConferenciaLayout() {
+            return `
+                <div id="conferencia-content">
+                    <div class="flex flex-wrap gap-3 pb-4 mb-4 border-b border-gray-200 print-hidden">
+                        <button onclick="printConferencia()" class="flex items-center space-x-2 px-4 py-2 bg-blue-100 text-blue-700 rounded-lg shadow-sm hover:bg-blue-200 transition duration-150 text-sm font-medium border border-blue-300">
+                            <span class="text-blue-600">${printerIcon}</span>
+                            <span>Imprimir Conferência</span>
+                        </button>
+                    </div>
+                    <div id="dynamic-table-content-conferencia">
+                        <p class="text-center text-gray-400 py-10">Carregando dados...</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        /**
+         * Abre a caixa de diálogo de impressão do navegador com estilos A4.
+         */
+        function printConferencia() {
+            window.print();
+        }
+
+        /**
+         * Renderiza os dados do Sheets em uma tabela HTML.
+         */
+        function renderTable(sheetName, data, headers, isEditable = false) {
+            
+            if (!data || data.length === 0) {
+                // Se a aba for CONTAGEM LOJA e estiver vazia, renderizamos uma linha editável para começar a contagem.
+                if (sheetName === "CONTAGEM LOJA") {
+                     return renderEmptyContagemTable(sheetName, headers);
+                }
+                return `<p class="text-center text-gray-500 py-10">Nenhum dado encontrado no Google Sheets para esta aba.</p>`;
+            }
+
+            // Define se a coluna "Status" (índice 5 da Conferência) deve ser editável
+            const isStatusEditable = sheetName === "CONFERENCIA";
+
+            let html = `
+                <div class="rounded-lg border border-gray-200 overflow-x-auto shadow-sm">
+                    <table class="mock-table w-full text-sm" id="${isEditable ? 'contagem-table' : (isStatusEditable ? 'conferencia-table' : '')}">
+                        <thead class="bg-gray-50 sticky top-0">
+                            <tr>`;
+            
+            headers.forEach(h => {
+                html += `<th class="w-auto whitespace-nowrap">${h}</th>`;
+            });
+            html += `</tr></thead><tbody>`;
+
+            let dataRows = data;
+            
+            // Se a primeira linha contiver os cabeçalhos, pula ela na renderização dos dados
+            if (data.length > 0 && headers.length > 0 && String(data[0][0]) === headers[0]) {
+                dataRows = data.slice(1);
+            }
+
+            // Variável para rastrear o índice da última linha real que tem dados (para saber onde inserir a linha vazia)
+            let lastRowIndexInSheet = 0;
+
+            dataRows.forEach((row, rowIndex) => {
+                const isRowEmpty = row.length === 0 || row.every(cell => !cell || String(cell).trim() === '');
+                if (isRowEmpty) return; // Pula linhas totalmente vazias
+
+                // Calcula o índice da linha no Sheets (baseado na linha 1)
+                const sheetRowIndex = (data[0][0] === headers[0] ? rowIndex + 2 : rowIndex + 1);
+                lastRowIndexInSheet = sheetRowIndex;
+                
+                html += `<tr data-row-index="${sheetRowIndex}">`;
+                
+                for (let i = 0; i < headers.length; i++) {
+                    const cellValue = row[i] !== undefined ? row[i] : '';
+                    
+                    // Mapeia o índice i (0=A, 1=B, etc.) para a letra da coluna
+                    const sheetCol = String.fromCharCode(65 + i);
+                    const sheetRange = `${sheetCol}${sheetRowIndex}`;
+
+                    let editAttributes = '';
+                    let cellClasses = '';
+
+                    // Lógica de Edição:
+                    // 1. CONTAGEM LOJA: APENAS A COLUNA 'A' (Índice 0) é editável
+                    // 2. CONFERENCIA: APENAS A COLUNA 'STATUS' (Índice 5) é editável
+                    const isCellEditable = (isEditable && i === 0) || (isStatusEditable && i === 5);
+
+                    if (isCellEditable) {
+                        editAttributes = `contenteditable="true"
+                                         onblur="handleCellEdit(this, '${sheetRange}', '${sheetName}')"
+                                         data-original-value="${cellValue}"
+                                         data-sheet-range="${sheetRange}"`;
+
+                        // Adiciona o keypress apenas para a Contagem Loja (fluxo de escanear)
+                        if (sheetName === "CONTAGEM LOJA") {
+                            editAttributes += `onkeydown="handleContagemKeyPress(event, '${sheetRange}', '${sheetName}')"`;
+                        }
+                        
+                        cellClasses = 'cursor-text hover:bg-indigo-50/50 focus:bg-indigo-100 border border-transparent focus:border-indigo-400 transition';
+                    }
+
+                    html += `<td ${editAttributes} class="${cellClasses}">${cellValue}</td>`;
+                }
+                html += `</tr>`;
+            });
+            
+            // Adiciona uma linha vazia editável para inserção de novo item (próxima linha) na aba CONTAGEM LOJA
+            if (isEditable && sheetName === "CONTAGEM LOJA") {
+                const nextRowIndex = lastRowIndexInSheet + 1;
+                
+                if (lastRowIndexInSheet !== 0) {
+                    html += renderEditableRow(sheetName, headers, nextRowIndex, true);
+                }
+            }
+
+            html += `</tbody></table></div>`;
+            return html;
+        }
+
+        /**
+         * Renderiza a linha editável vazia para começar a contagem.
+         */
+        function renderEmptyContagemTable(sheetName, headers) {
+             const startRowIndex = 2; // O primeiro item de contagem sempre vai para a Linha 2 do Sheets.
+
+             // Renderiza a linha editável que será o primeiro input
+             const firstEditableRow = renderEditableRow(sheetName, headers, startRowIndex);
+             
+             return `
+                 <div class="rounded-lg border border-gray-200 overflow-x-auto shadow-sm">
+                    <table class="mock-table w-full text-sm" id="contagem-table">
+                        <thead class="bg-gray-50 sticky top-0">
+                            <tr><th>${headers[0]}</th></tr>
+                        </thead>
+                        <tbody>
+                            ${firstEditableRow}
+                        </tbody>
+                    </table>
+                </div>
+             `;
+        }
+
+        /**
+         * Renderiza uma linha vazia com a primeira célula editável (usada apenas pela Contagem Loja).
+         */
+        function renderEditableRow(sheetName, headers, sheetRowIndex) {
+            let html = `<tr data-row-index="${sheetRowIndex}">`;
+            
+            // Assume que é a aba CONTAGEM LOJA, onde apenas o primeiro item (A) é editável
+            const sheetCol = 'A'; // Primeira coluna
+            const sheetRange = `${sheetCol}${sheetRowIndex}`;
+            
+            const editAttributes = `contenteditable="true"
+                                    onblur="handleCellEdit(this, '${sheetRange}', '${sheetName}')"
+                                    onkeydown="handleContagemKeyPress(event, '${sheetRange}', '${sheetName}')"
+                                    data-original-value=""
+                                    data-sheet-range="${sheetRange}"`;
+            
+            const cellClasses = 'cursor-text hover:bg-indigo-50/50 focus:bg-indigo-100 border border-transparent focus:border-indigo-400 transition';
+
+            html += `<td ${editAttributes} class="${cellClasses}"></td>`;
+            
+            // Adiciona colunas vazias para manter a estrutura, se necessário
+            for (let i = 1; i < headers.length; i++) {
+                html += `<td></td>`;
+            }
+            
+            html += `</tr>`;
+            return html;
+        }
+
+
+        /**
+         * Gerencia a busca de dados e a renderização do conteúdo da aba.
+         */
+        async function loadTabContent(sheetName) {
+            const data = await fetchSheetData(sheetName);
+
+            let targetElementId = 'dynamic-table-content';
+            let headers = [];
+            let isEditable = false;
+
+            if (sheetName === "NOTA FISCAL") {
+                headers = ["Descrição", "Quantidade", "Código de Barras", "Item"];
+            } else if (sheetName === "CONTAGEM LOJA") {
+                // Apenas um cabeçalho é necessário para a entrada do usuário
+                headers = ["Código de Barras"]; 
+                targetElementId = 'dynamic-table-content-contagem';
+                isEditable = true;
+            } else if (sheetName === "CONFERENCIA") {
+                headers = ["Código de Barras", "Descrição do Produto", "Quantidade NF", "Contagem Loja", "Diferença", "Status"];
+                targetElementId = 'dynamic-table-content-conferencia';
+            }
+
+            const targetElement = document.getElementById(targetElementId);
+            if (targetElement) {
+                targetElement.innerHTML = renderTable(sheetName, data, headers, isEditable);
+                
+                // --- Aplica estilos condicionais após a renderização ---
+                if (sheetName === "CONFERENCIA") {
+                    // Espera o DOM ser atualizado antes de aplicar os estilos
+                    setTimeout(() => {
+                        applyConferenciaStyles(headers.length);
+                    }, 0);
+                }
+                
+            } else if (sheetName !== "NOTA FISCAL" && sheetName !== "CONTAGEM LOJA") {
+                // Caso seja CONFERENCIA (ou outra aba sem layout pré-definido)
+                contentStack.innerHTML = `
+                    <div id="${sheetName.toLowerCase()}-content">
+                        ${renderTable(sheetName, data, headers, isEditable)}
+                    </div>
+                `;
+                // --- Aplica estilos condicionais após a renderização ---
+                if (sheetName === "CONFERENCIA") {
+                    setTimeout(() => {
+                        applyConferenciaStyles(headers.length);
+                    }, 0);
+                }
+            }
+        }
+        
+        /**
+         * Aplica formatação condicional à coluna Diferença (E) na aba CONFERENCIA.
+         * @param {number} numCols Número total de colunas para encontrar a 5ª.
+         */
+        function applyConferenciaStyles(numCols) {
+            // A coluna 'Diferença' é a 5ª coluna (nth-child(5)) da tabela
+            const rows = document.querySelectorAll('#conferencia-content .mock-table tbody tr');
+
+            rows.forEach(row => {
+                const diffCell = row.querySelector('td:nth-child(5)');
+                if (!diffCell) return;
+
+                // Tenta converter o conteúdo da célula para número (substituindo vírgula por ponto para o parse)
+                let value = parseFloat(diffCell.textContent.replace(',', '.').trim());
+                
+                // Remove quaisquer classes de cor existentes
+                diffCell.classList.remove('bg-fee2e2', 'text-b91c1c', 'bg-green-100', 'text-green-700');
+
+                if (isNaN(value) || value === 0) {
+                    // Valor Zero ou Vazio (Neutro - sem cor)
+                    // Não adiciona classes de cor.
+                } else if (value < 0) {
+                    // Regra Vermelha (Negativo)
+                    diffCell.classList.add('bg-fee2e2', 'text-b91c1c');
+                } else if (value > 0) {
+                    // Regra Verde (Positivo)
+                    diffCell.classList.add('bg-green-100', 'text-green-700');
+                }
+            });
+        }
+
+
+        // --- Funções de API e Utilitários (demais funções inalteradas) ---
+
+        /**
+         * Lida com a tecla pressionada na célula da Contagem Loja.
+         */
+        function handleContagemKeyPress(event, sheetRange, sheetName) {
+            if (event.keyCode === 13) {
+                event.preventDefault();
+                
+                const element = event.target;
+                handleCellEdit(element, sheetRange, sheetName);
+
+                const currentRow = parseInt(sheetRange.slice(1));
+                const nextRow = currentRow + 1;
+                const nextRange = `A${nextRow}`;
+
+                const nextCell = document.querySelector(`td[data-sheet-range="${nextRange}"]`);
+                
+                if (nextCell) {
+                    nextCell.textContent = ''; // Limpa para a próxima contagem
+                    nextCell.dataset.originalValue = ''; // Força o save
+                    nextCell.focus();
+                } else {
+                    // Se não encontrou a célula, é o momento de criar uma nova linha no DOM.
+                    const tableBody = document.querySelector('#contagem-table tbody');
+                    if (tableBody) {
+                        // Remove qualquer linha de "placeholder" que possa ter sido renderizada antes
+                        const placeholderRows = tableBody.querySelectorAll('tr[data-placeholder="true"]');
+                        placeholderRows.forEach(row => row.remove());
+                        
+                        // Renderiza e insere a nova linha editável no final da tabela
+                        const headers = ["Código de Barras"]; // Apenas o header necessário
+                        const newRowHtml = renderEditableRow(sheetName, headers, nextRow);
+                        tableBody.insertAdjacentHTML('beforeend', newRowHtml);
+                        
+                        // Foca na nova célula
+                        const newCell = document.querySelector(`td[data-sheet-range="${nextRange}"]`);
+                        if (newCell) {
+                            newCell.focus();
+                        }
+                    }
+                }
+            }
+        }
+
+
+        /**
+         * Busca dados da aba especificada no backend Go.
+         */
+        async function fetchSheetData(sheetName) {
+            showNotification(`Buscando dados da aba '${sheetName}'...`, 'loading');
+            
+            try {
+                const response = await fetch(`${BACKEND_URL}/fetch-sheet-data`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sheet_name: sheetName })
+                });
+
+                const result = await response.json();
+                hideNotification();
+
+                if (!response.ok || result.error) {
+                    showNotification(`Erro ao carregar '${sheetName}': ${result.error || 'Erro de servidor.'}`, 'error');
+                    return [];
+                }
+                
+                return result.data || [];
+
+            } catch (error) {
+                hideNotification();
+                console.error("Erro na comunicação para buscar dados:", error);
+                showNotification(`Erro de Rede/CORS ao buscar dados para ${sheetName}.`, 'error');
+                return [];
+            }
+        }
+        
+        /**
+         * Envia o conteúdo XML para importação no Sheets.
+         */
+        async function importXMLData(xmlContent) {
+            if (!xmlContent || xmlContent.trim().length < 100) {
+                showNotification("Conteúdo XML vazio ou inválido para importação.", 'warning');
+                return;
+            }
+
+            showNotification("Enviando XML para o backend Go...", 'loading');
+
+            try {
+                const response = await fetch(`${BACKEND_URL}/import-xml-data`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ xml_content: xmlContent, user_id: USER_ID })
+                });
+
+                const result = await response.json();
+                hideNotification();
+
+                if (!response.ok || result.error) {
+                    showNotification(`Falha na Importação: ${result.error || 'Erro desconhecido do servidor.'}`, 'error');
+                } else {
+                    showNotification(result.message, 'success');
+                    switchTab("NOTA FISCAL");
+                }
+
+            } catch (error) {
+                hideNotification();
+                console.error("Erro de Rede:", error);
+                showNotification("Erro de Rede ao tentar conectar com o servidor Go. Verifique se ele está rodando em http://localhost:8080.", 'error');
+            }
+        }
+
+        /**
+         * Importação funcional por CHAVE DE ACESSO:
+         */
+        async function importarXMLPorChave() {
+            const chaveInput = document.getElementById("chave-acesso-input");
+            if (!chaveInput) {
+                showNotification("Campo de chave não encontrado.", "error");
+                return;
+            }
+            const chaveAcesso = chaveInput.value.trim();
+
+            if (!chaveAcesso || chaveAcesso.length !== 44) {
+                showNotification("Chave de acesso inválida. Deve conter 44 dígitos.", "warning");
+                return;
+            }
+
+            showNotification("Importando XML pela chave de acesso...", "loading");
+
+            try {
+                const response = await fetch(`${BACKEND_URL}/importar-xml-chave`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ chaveAcesso })
+                });
+
+                const result = await response.json();
+                hideNotification();
+
+                if (!response.ok || result.error) {
+                    showNotification(`Erro: ${result.error || 'Falha desconhecida ao importar XML.'}`, "error");
+                } else {
+                    showNotification(result.message, "success");
+                    hidePasteModal();
+                    // Recarrega a aba para mostrar os novos dados inseridos
+                    switchTab("NOTA FISCAL");
+                }
+            } catch (error) {
+                hideNotification();
+                console.error("Erro ao importar XML por chave:", error);
+                showNotification("Erro de rede ao tentar importar XML pela chave.", "error");
+            }
+        }
+
+        /**
+         * Lida com a edição de uma célula e envia a atualização para o backend Go.
+         */
+        async function handleCellEdit(element, sheetRange, sheetName) {
+            const newValue = element.textContent.trim();
+            const originalValue = element.dataset.originalValue;
+
+            if (newValue === originalValue) {
+                return; // Não houve alteração
+            }
+
+            // Exibir status de salvamento (opcional, mas bom para feedback)
+            element.classList.add('saving-status'); 
+
+            try {
+                const response = await fetch(`${BACKEND_URL}/update-sheet-data`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sheet_name: sheetName, range: sheetRange, value: newValue })
+                });
+
+                const result = await response.json();
+
+                element.classList.remove('saving-status');
+
+                if (!response.ok || result.error) {
+                    showNotification(`Erro ao salvar ${sheetRange}: ${result.error || 'Erro de servidor.'}`, 'error');
+                    element.textContent = originalValue; // Reverte para o valor original
+                } else {
+                    // Atualiza o valor original para o novo valor salvo
+                    element.dataset.originalValue = newValue;
+                    showNotification(`Célula ${sheetRange} atualizada com sucesso para '${newValue}'.`, 'success', 2000);
+                }
+
+            } catch (error) {
+                element.classList.remove('saving-status');
+                console.error("Erro na comunicação para atualizar célula:", error);
+                showNotification(`Erro de Rede ao tentar atualizar ${sheetRange}.`, 'error');
+                element.textContent = originalValue; // Reverte
+            }
+        }
+
+        
+        // --- Lógica de Limpeza Múltipla de Dados com Configurações ---
+
+        // Configuração: Nome da aba e o range que DEVE ser limpo (apenas as abas de entrada)
+        const sheetsConfig = [
+            { name: "NOTA FISCAL", range: 'A2:Z' },         // Limpa tudo da linha 2 em diante
+            { name: "CONTAGEM LOJA", range: 'A2:Z' },       // Limpa tudo da linha 2 em diante
+        ];
+
+        /**
+         * Confirmação e chamada para limpar TODAS as planilhas.
+         */
+        function confirmClearAllSheets() {
+            const confirmationMessage = "ATENÇÃO: Você tem certeza que deseja APAGAR TODOS os dados de entrada? Os dados serão atualizados automaticamente após a limpeza.";
+            
+            if (confirm(confirmationMessage)) {
+                clearMultipleSheets();
+            }
+        }
+
+        /**
+         * Envia os comandos de limpeza de dados para TODAS as abas configuradas.
+         */
+        async function clearMultipleSheets() {
+            showNotification(`Iniciando limpeza em lote das ${sheetsConfig.length} abas de entrada...`, 'loading', 30000); // 30s max load
+
+            let successCount = 0;
+            let errorCount = 0;
+
+            for (const config of sheetsConfig) {
+                // Passa o nome da aba e o range específico
+                const result = await clearSheetData(config.name, config.range, false); 
+                if (result.success) {
+                    successCount++;
+                } else {
+                    errorCount++;
+                    showNotification(`Erro ao limpar a aba '${config.name}'.`, 'error', 4000);
+                }
+            }
+
+            hideNotification(); // Remove a notificação de 'loading'
+
+            if (errorCount === 0) {
+                showNotification(`Limpeza global concluída! ${successCount} abas de entrada limpas com sucesso. As fórmulas da Conferência foram preservadas.`, 'success', 5000);
+            } else {
+                 showNotification(`Limpeza global concluída com ${errorCount} erro(s). Verifique o console.`, 'warning', 8000);
+            }
+
+            // Recarrega a aba NOTA FISCAL (padrão) para refletir o estado vazio
+            switchTab('NOTA FISCAL'); 
+        }
+
+        /**
+         * Envia o comando de limpeza de dados para o backend Go.
+         */
+        async function clearSheetData(sheetName, range, showNotificationOnSuccess = true) {
+            if (showNotificationOnSuccess) {
+                showNotification(`Limpando dados da aba '${sheetName}' (Range: ${range})...`, 'loading');
+            }
+            
+            try {
+                const response = await fetch(`${BACKEND_URL}/clear-sheet-data`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sheet_name: sheetName, range: range })
+                });
+
+                const result = await response.json();
+                
+                if (showNotificationOnSuccess) {
+                    hideNotification();
+                }
+
+                if (!response.ok || result.error) {
+                    if (showNotificationOnSuccess) {
+                        showNotification(`Erro ao limpar '${sheetName}': ${result.error || 'Erro de servidor.'}`, 'error');
+                    }
+                    return { success: false, error: result.error || 'Erro de servidor.' };
+                } else {
+                    if (showNotificationOnSuccess) {
+                        showNotification(result.message, 'success');
+                    }
+                    return { success: true, message: result.message };
+                }
+
+            } catch (error) {
+                if (showNotificationOnSuccess) {
+                    hideNotification();
+                    showNotification(`Erro de Rede/CORS ao limpar dados.`, 'error');
+                }
+                console.error(`Erro de rede ao tentar limpar ${sheetName}:`, error);
+                return { success: false, error: 'Erro de rede/comunicação.' };
+            }
+        }
+
+
+        // --- Funções de Modal e Notificação (Tailwind) ---
+
+        function showPasteModal() {
+            document.getElementById('paste-modal').classList.remove('hidden');
+        }
+
+        function hidePasteModal() {
+            document.getElementById('paste-modal').classList.add('hidden');
+        }
+
+        // Modifica a função de notificação para aceitar o tempo de exibição e usar o layout Tailwind
+        function showNotification(message, type = 'success', duration = 5000) {
+            const container = document.getElementById('notifications-container');
+            
+            // Define a classe CSS baseada no tipo
+            let bgColor = 'bg-green-500';
+            let icon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>`;
+
+            if (type === 'error') {
+                bgColor = 'bg-red-500';
+                icon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`;
+            } else if (type === 'loading' || type === 'warning') {
+                bgColor = 'bg-yellow-500';
+                icon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 ${type === 'loading' ? 'animate-spin' : ''}" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707" /></svg>`;
+            }
+
+            const notification = document.createElement('div');
+            notification.className = `p-4 text-white ${bgColor} rounded-lg shadow-xl flex items-center space-x-3 transition-opacity duration-300 opacity-0`;
+            notification.innerHTML = `
+                <div>${icon}</div>
+                <p class="font-medium">${message}</p>
+            `;
+
+            // Atribui um ID se for loading, para poder ser removido especificamente
+            if (type === 'loading') {
+                notification.id = 'loading-notification';
+            }
+
+            container.appendChild(notification);
+            
+            // Força a transição de opacidade
+            setTimeout(() => notification.classList.remove('opacity-0'), 10); 
+
+            if (type !== 'loading') {
+                setTimeout(() => {
+                    notification.classList.add('opacity-0');
+                    notification.addEventListener('transitionend', () => notification.remove());
+                }, duration);
+            }
+        }
+
+        // Função para esconder a notificação de 'loading' (se houver)
+        function hideNotification() {
+            const loadingNotification = document.getElementById('loading-notification');
+            if (loadingNotification) {
+                loadingNotification.remove();
+            }
+        }
+
+
+        function handleFileUploadChange(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const xmlContent = e.target.result;
+                importXMLData(xmlContent);
+                // Limpa o input file para que o evento 'change' seja disparado novamente se o mesmo arquivo for selecionado
+                event.target.value = null; 
+            };
+            reader.onerror = function() {
+                showNotification("Erro ao ler o arquivo XML.", 'error');
+            };
+            reader.readAsText(file);
+        }
+
+        // --- Inicialização ---
+
+        // Inicia na aba padrão e carrega os dados
+        document.addEventListener('DOMContentLoaded', () => {
+            // Garante que a função de edição de célula existe para evitar erros
+            if (typeof window.handleCellEdit !== 'function') {
+                window.handleCellEdit = async function(element, sheetRange, sheetName) {
+                    // Implementação de fallback ou aviso
+                }
+            }
+            switchTab('NOTA FISCAL'); 
+        });
+
+    </script>
+</body>
+</html>
