@@ -152,6 +152,14 @@
         const BACKEND_URL = "https://back-end-nfe.onrender.com";
         const USER_ID = "web-user-123";
         
+        // --- Configuração da Limpeza Global (NOVA) ---
+        // Adicionamos a limpeza da coluna OBS (Coluna F, a partir da linha 2) na aba CONFERENCIA
+        const sheetsConfig = [
+            { name: "NOTA FISCAL", range: 'A2:Z' },         
+            { name: "CONTAGEM LOJA", range: 'A2:Z' },       
+            { name: "CONFERENCIA", range: 'F2:F' },         // NOVO: Limpa a coluna OBS
+        ];
+        
         // --- Gerenciamento de Abas ---
         const tabButtons = document.querySelectorAll('.tab-button');
         const contentStack = document.getElementById('content-stack');
@@ -280,12 +288,12 @@
                 return `<p class="text-center text-gray-500 py-10">Nenhum dado encontrado no Google Sheets para esta aba.</p>`;
             }
 
-            // Define se a coluna "Status" (índice 5 da Conferência) deve ser editável
-            const isStatusEditable = sheetName === "CONFERENCIA";
+            // Define se a coluna "OBS" (índice 5 da Conferência) deve ser editável
+            const isObsEditable = sheetName === "CONFERENCIA";
 
             let html = `
                 <div class="rounded-lg border border-gray-200 overflow-x-auto shadow-sm">
-                    <table class="mock-table w-full text-sm" id="${isEditable ? 'contagem-table' : (isStatusEditable ? 'conferencia-table' : '')}">
+                    <table class="mock-table w-full text-sm" id="${isEditable ? 'contagem-table' : (isObsEditable ? 'conferencia-table' : '')}">
                         <thead class="bg-gray-50 sticky top-0">
                             <tr>`;
             
@@ -326,8 +334,8 @@
 
                     // Lógica de Edição:
                     // 1. CONTAGEM LOJA: APENAS A COLUNA 'A' (Índice 0) é editável
-                    // 2. CONFERENCIA: APENAS A COLUNA 'STATUS' (Índice 5) é editável
-                    const isCellEditable = (isEditable && i === 0) || (isStatusEditable && i === 5);
+                    // 2. CONFERENCIA: APENAS A COLUNA 'OBS' (Índice 5) é editável
+                    const isCellEditable = (isEditable && i === 0) || (isObsEditable && i === 5);
 
                     if (isCellEditable) {
                         editAttributes = `contenteditable="true"
@@ -341,9 +349,17 @@
                         }
                         
                         cellClasses = 'cursor-text hover:bg-indigo-50/50 focus:bg-indigo-100 border border-transparent focus:border-indigo-400 transition';
-                    }
+                        
+                        // REMOVIDO: A lógica do botão 'X' (Apagar) foi removida aqui.
+                        // A limpeza da OBS agora é feita pelo botão global "Apagar Dados".
+                        const cellContent = cellValue || '';
 
-                    html += `<td ${editAttributes} class="${cellClasses}">${cellValue}</td>`;
+                        html += `<td ${editAttributes} class="${cellClasses}">${cellContent}</td>`;
+
+                    } else {
+                        // Células não editáveis
+                        html += `<td>${cellValue}</td>`;
+                    }
                 }
                 html += `</tr>`;
             });
@@ -360,6 +376,7 @@
             html += `</tbody></table></div>`;
             return html;
         }
+
 
         /**
          * Renderiza a linha editável vazia para começar a contagem.
@@ -418,10 +435,9 @@
          * Gerencia a busca de dados e a renderização do conteúdo da aba.
          */
         async function loadTabContent(sheetName) {
-            const data = await fetchSheetData(sheetName);
-
-            let targetElementId = 'dynamic-table-content';
+            
             let headers = [];
+            let targetElementId = 'dynamic-table-content';
             let isEditable = false;
 
             if (sheetName === "NOTA FISCAL") {
@@ -432,9 +448,12 @@
                 targetElementId = 'dynamic-table-content-contagem';
                 isEditable = true;
             } else if (sheetName === "CONFERENCIA") {
-                headers = ["Código de Barras", "Descrição do Produto", "Quantidade NF", "Contagem Loja", "Diferença", "Status"];
+                // MODIFICADO: Renomeado "Status" para "OBS"
+                headers = ["Código de Barras", "Descrição do Produto", "Quantidade NF", "Contagem Loja", "Diferença", "OBS"];
                 targetElementId = 'dynamic-table-content-conferencia';
             }
+
+            const data = await fetchSheetData(sheetName);
 
             const targetElement = document.getElementById(targetElementId);
             if (targetElement) {
@@ -640,6 +659,7 @@
                     showNotification(`Erro: ${result.error || 'Falha desconhecida ao importar XML.'}`, "error");
                 } else {
                     showNotification(result.message, "success");
+                    chaveInput.value = ''; // Limpa o campo após o sucesso
                     hidePasteModal();
                     // Recarrega a aba para mostrar os novos dados inseridos
                     switchTab("NOTA FISCAL");
@@ -683,6 +703,11 @@
                     // Atualiza o valor original para o novo valor salvo
                     element.dataset.originalValue = newValue;
                     showNotification(`Célula ${sheetRange} atualizada com sucesso para '${newValue}'.`, 'success', 2000);
+                    
+                    // Se for a aba CONFERENCIA, recarregamos para que as fórmulas sejam reavaliadas
+                    if (sheetName === "CONFERENCIA") {
+                         switchTab(sheetName);
+                    }
                 }
 
             } catch (error) {
@@ -693,20 +718,13 @@
             }
         }
 
-        
         // --- Lógica de Limpeza Múltipla de Dados com Configurações ---
-
-        // Configuração: Nome da aba e o range que DEVE ser limpo (apenas as abas de entrada)
-        const sheetsConfig = [
-            { name: "NOTA FISCAL", range: 'A2:Z' },         // Limpa tudo da linha 2 em diante
-            { name: "CONTAGEM LOJA", range: 'A2:Z' },       // Limpa tudo da linha 2 em diante
-        ];
 
         /**
          * Confirmação e chamada para limpar TODAS as planilhas.
          */
         function confirmClearAllSheets() {
-            const confirmationMessage = "ATENÇÃO: Você tem certeza que deseja APAGAR TODOS os dados de entrada? Os dados serão atualizados automaticamente após a limpeza.";
+            const confirmationMessage = "ATENÇÃO: Você tem certeza que deseja APAGAR TODOS os dados de entrada (Nota Fiscal e Contagem Loja) e limpar a coluna de Observação da Conferência? Esta ação é irreversível.";
             
             if (confirm(confirmationMessage)) {
                 clearMultipleSheets();
@@ -717,7 +735,7 @@
          * Envia os comandos de limpeza de dados para TODAS as abas configuradas.
          */
         async function clearMultipleSheets() {
-            showNotification(`Iniciando limpeza em lote das ${sheetsConfig.length} abas de entrada...`, 'loading', 30000); // 30s max load
+            showNotification(`Iniciando limpeza em lote das ${sheetsConfig.length} áreas...`, 'loading', 30000); // 30s max load
 
             let successCount = 0;
             let errorCount = 0;
@@ -736,7 +754,7 @@
             hideNotification(); // Remove a notificação de 'loading'
 
             if (errorCount === 0) {
-                showNotification(`Limpeza global concluída! ${successCount} abas de entrada limpas com sucesso. As fórmulas da Conferência foram preservadas.`, 'success', 5000);
+                showNotification(`Limpeza global concluída! ${successCount} áreas limpas com sucesso.`, 'success', 5000);
             } else {
                  showNotification(`Limpeza global concluída com ${errorCount} erro(s). Verifique o console.`, 'warning', 8000);
             }
@@ -793,6 +811,11 @@
 
         function showPasteModal() {
             document.getElementById('paste-modal').classList.remove('hidden');
+            // NOVO: Foca o campo de input quando o modal abre
+            const chaveInput = document.getElementById("chave-acesso-input");
+            if (chaveInput) {
+                chaveInput.focus();
+            }
         }
 
         function hidePasteModal() {
@@ -876,6 +899,18 @@
                     // Implementação de fallback ou aviso
                 }
             }
+            
+            // NOVO: Adiciona o listener para o ENTER no campo da chave de acesso do modal
+            const chaveInput = document.getElementById("chave-acesso-input");
+            if (chaveInput) {
+                chaveInput.addEventListener('keydown', function(event) {
+                    if (event.key === 'Enter') {
+                        event.preventDefault(); // Impede o comportamento padrão de formulário
+                        importarXMLPorChave(); 
+                    }
+                });
+            }
+
             switchTab('NOTA FISCAL'); 
         });
 
