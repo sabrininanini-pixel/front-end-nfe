@@ -40,12 +40,13 @@
             text-align: center; /* Centraliza o número para melhor visualização */
         }
 
-        /* Define a largura da coluna Status (6ª coluna) igual à Quantidade NF (3ª coluna) */
+        /* Define a largura da coluna Status/OBS (6ª coluna) igual à Quantidade NF (3ª coluna) */
+        /* Essas regras causam o truncamento '...' e a largura fixa, mantidas para o layout */
         #conferencia-content .mock-table th:nth-child(3), 
         #conferencia-content .mock-table td:nth-child(3),
         #conferencia-content .mock-table th:nth-child(6), 
         #conferencia-content .mock-table td:nth-child(6) {
-             width: 100px; /* Largura fixa para ambas */
+             width: 100px; /* Largura fixa */
              min-width: 100px;
              max-width: 100px;
              overflow: hidden;
@@ -157,7 +158,7 @@
         const sheetsConfig = [
             { name: "NOTA FISCAL", range: 'A2:Z' },         
             { name: "CONTAGEM LOJA", range: 'A2:Z' },       
-            { name: "CONFERENCIA", range: 'F2:F' },         // NOVO: Limpa a coluna OBS
+            { name: "CONFERENCIA", range: 'F2:F' },         // Limpa a coluna OBS
         ];
         
         // --- Gerenciamento de Abas ---
@@ -343,6 +344,11 @@
                                          data-original-value="${cellValue}"
                                          data-sheet-range="${sheetRange}"`;
 
+                        // NOVO: Adiciona o atributo title (tooltip) para a coluna OBS (índice 5)
+                        if (isObsEditable && i === 5) {
+                            editAttributes += ` title="${cellValue || ''}"`;
+                        }
+
                         // Adiciona o keypress apenas para a Contagem Loja (fluxo de escanear)
                         if (sheetName === "CONTAGEM LOJA") {
                             editAttributes += `onkeydown="handleContagemKeyPress(event, '${sheetRange}', '${sheetName}')"`;
@@ -350,8 +356,7 @@
                         
                         cellClasses = 'cursor-text hover:bg-indigo-50/50 focus:bg-indigo-100 border border-transparent focus:border-indigo-400 transition';
                         
-                        // REMOVIDO: A lógica do botão 'X' (Apagar) foi removida aqui.
-                        // A limpeza da OBS agora é feita pelo botão global "Apagar Dados".
+                        // O conteúdo da célula é o valor, que será truncado pelo CSS
                         const cellContent = cellValue || '';
 
                         html += `<td ${editAttributes} class="${cellClasses}">${cellContent}</td>`;
@@ -675,13 +680,29 @@
          * Lida com a edição de uma célula e envia a atualização para o backend Go.
          */
         async function handleCellEdit(element, sheetRange, sheetName) {
-            const newValue = element.textContent.trim();
+            let newValue = element.textContent.trim();
             const originalValue = element.dataset.originalValue;
 
             if (newValue === originalValue) {
                 return; // Não houve alteração
             }
+            
+            // NOVO: Regra de Limite de 30 caracteres para a OBS (Coluna F da CONFERENCIA)
+            if (sheetName === "CONFERENCIA") {
+                const MAX_CHARS = 30;
+                if (newValue.length > MAX_CHARS) {
+                    showNotification(`A Observação foi limitada a ${MAX_CHARS} caracteres.`, 'warning', 4000);
+                    // Trunca o valor a ser enviado e exibido na célula
+                    newValue = newValue.substring(0, MAX_CHARS);
+                }
+                
+                // Atualiza o atributo title (tooltip) para o novo valor (truncado ou não)
+                element.setAttribute('title', newValue);
+            }
 
+            // Atualiza o conteúdo visual da célula após a possível truncagem
+            element.textContent = newValue;
+            
             // Exibir status de salvamento (opcional, mas bom para feedback)
             element.classList.add('saving-status'); 
 
