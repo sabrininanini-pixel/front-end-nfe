@@ -713,7 +713,7 @@
 
         /**
          * Lida com a tecla pressionada na célula da Contagem Loja (Enter).
-         * CORRIGIDO: Adicionado element.blur() para forçar a saída do teclado virtual no mobile antes do foco.
+         * LÓGICA SIMPLIFICADA SOLICITADA PELO USUÁRIO APLICADA.
          */
         function handleContagemKeyPress(event, sheetRange, sheetName) {
             if (event.keyCode === 13) {
@@ -754,20 +754,11 @@
                         tempDiv.innerHTML = newRowHtml.trim();
                         const newRow = tempDiv.firstChild;
                         
-                        // 2.2. Procura a PRÓXIMA linha existente (A(N+2), A(N+3), etc.) para usá-la como referência
-                        // Se for a última linha da tabela, nextExistingRow será null.
-                        const nextExistingRow = document.querySelector(`tr[data-row-index="${nextRow + 1}"]`);
+                        // 2.2. [LÓGICA SIMPLIFICADA] Apenas anexa a nova linha ao final do corpo da tabela.
+                        // Esta é a lógica que o usuário confirmou funcionar perfeitamente em dispositivos móveis.
+                        tableBody.appendChild(newRow);
                         
-                        // 2.3. Insere a nova linha
-                        if (nextExistingRow) {
-                            // Insere a nova linha ANTES da próxima linha que foi renderizada
-                            tableBody.insertBefore(newRow, nextExistingRow);
-                        } else {
-                            // É a última linha, então apenas anexa (append)
-                            tableBody.appendChild(newRow);
-                        }
-                        
-                        // 2.4. Obtém a nova célula e força o foco (com setTimeout para o DOM processar)
+                        // 2.3. Obtém a nova célula e força o foco (com setTimeout para o DOM processar)
                         nextCell = newRow.querySelector(`td[data-sheet-range="${nextRange}"]`);
                         
                         if (nextCell) {
