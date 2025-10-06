@@ -329,7 +329,7 @@
                     </button>
                     
                     <button onclick="confirmClearAllSheets()" class="flex items-center space-x-2 px-4 py-2 bg-red-50 text-red-700 rounded-lg shadow-sm hover:bg-red-100 transition duration-150 text-sm font-medium border border-red-200">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 10 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-2 0v6a1 1 0 102 0V7z" clip-rule="evenodd" /></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-2 0v6a1 1 0 102 0V7z" clip-rule="evenodd" /></svg>
                         <span>Apagar Dados</span>
                     </button>
                 </div>
@@ -394,7 +394,7 @@
         }
 
         /**
-         * Renderiza os dados do Sheets em uma tabela HTML. (Não alterada)
+         * Renderiza os dados do Sheets em uma tabela HTML.
          */
         function renderTable(sheetName, data, headers, isEditable = false) {
             
@@ -410,7 +410,6 @@
             const isStatusEditable = sheetName === "CONFERENCIA";
 
             // O contêiner pai mantém o overflow-x-auto para que o scroll horizontal funcione no PC e Mobile.
-            // A classe 'w-full' foi REMOVIDA da tag <table> para evitar conflito com 'width: max-content'
             let html = `
                 <div class="rounded-lg border border-gray-200 overflow-x-auto shadow-sm">
                     <table class="mock-table text-sm" id="${isEditable ? 'contagem-table' : (isStatusEditable ? 'conferencia-table' : '')}">
@@ -490,7 +489,7 @@
         }
 
         /**
-         * Renderiza a linha editável vazia para começar a contagem. (Não alterada)
+         * Renderiza a linha editável vazia para começar a contagem.
          */
         function renderEmptyContagemTable(sheetName, headers) {
              const startRowIndex = 2; // O primeiro item de contagem sempre vai para a Linha 2 do Sheets.
@@ -513,7 +512,7 @@
         }
 
         /**
-         * Renderiza uma linha vazia com a primeira célula editável (usada apenas pela Contagem Loja). (Não alterada)
+         * Renderiza uma linha vazia com a primeira célula editável (usada apenas pela Contagem Loja).
          */
         function renderEditableRow(sheetName, headers, sheetRowIndex) {
             let html = `<tr data-row-index="${sheetRowIndex}">`;
@@ -613,13 +612,20 @@
         function updateTableModeDisplay() {
             const table = document.querySelector('.mock-table');
             const scrollContainer = document.querySelector('.overflow-x-auto');
-            const toggleIconContainer = document.getElementById('toggle-icon-container');
-            const toggleTextContainer = document.getElementById('toggle-text-container');
-            
-            if (!table || !scrollContainer || !toggleIconContainer || !toggleTextContainer) {
+            // Procura o container de ícone e texto correspondente à aba atual
+            const toggleButton = document.getElementById(`toggle-scroll-btn-${currentTab === 'NOTA FISCAL' ? 'nf' : 'conf'}`);
+
+            if (!table || !scrollContainer || !toggleButton) {
                 return; 
             }
             
+            const toggleIconContainer = toggleButton.querySelector('#toggle-icon-container');
+            const toggleTextContainer = toggleButton.querySelector('#toggle-text-container');
+            
+            if (!toggleIconContainer || !toggleTextContainer) {
+                return; 
+            }
+
             // 1. Toggle Mode na Tabela
             if (scrollModeActive) {
                 // SCROLL MODE: width: max-content, white-space: nowrap
@@ -641,7 +647,7 @@
 
         
         /**
-         * Aplica formatação condicional à coluna Diferença (E) na aba CONFERENCIA. (Não alterada)
+         * Aplica formatação condicional à coluna Diferença (E) na aba CONFERENCIA.
          */
         function applyConferenciaStyles(numCols) {
             // A coluna 'Diferença' é a 5ª coluna (nth-child(5)) da tabela
@@ -671,45 +677,62 @@
         }
 
 
-        // --- Funções de API e Utilitários (Não Alteradas) ---
+        // --- Funções de API e Utilitários ---
 
         /**
          * Lida com a tecla pressionada na célula da Contagem Loja.
+         * LÓGICA SIMPLIFICADA DE INSERÇÃO DA NOVA LINHA APLICADA CONFORME SOLICITADO.
          */
         function handleContagemKeyPress(event, sheetRange, sheetName) {
             if (event.keyCode === 13) {
                 event.preventDefault();
                 
                 const element = event.target;
+                // 1. Salva a edição na célula atual
                 handleCellEdit(element, sheetRange, sheetName);
+                
+                // [CORREÇÃO MOBILE MANTIDA] Força o elemento atual a perder o foco antes de pular.
+                element.blur(); 
 
                 const currentRow = parseInt(sheetRange.slice(1));
                 const nextRow = currentRow + 1;
                 const nextRange = `A${nextRow}`;
 
-                const nextCell = document.querySelector(`td[data-sheet-range="${nextRange}"]`);
+                let nextCell = document.querySelector(`td[data-sheet-range="${nextRange}"]`);
                 
+                // 2. Tenta pular para a próxima célula/linha
                 if (nextCell) {
-                    nextCell.textContent = ''; // Limpa para a próxima contagem
-                    nextCell.dataset.originalValue = ''; // Força o save
-                    nextCell.focus();
+                    // Caso 1: A célula A(N+1) existe no DOM
+                    nextCell.textContent = ''; 
+                    nextCell.dataset.originalValue = '';
+                    // Usa setTimeout(0) para garantir que o foco funcione.
+                    setTimeout(() => nextCell.focus(), 0);
                 } else {
-                    // Se não encontrou a célula, é o momento de criar uma nova linha no DOM.
+                    // Caso 2: A célula A(N+1) não existe. Precisa criar a nova linha.
                     const tableBody = document.querySelector('#contagem-table tbody');
                     if (tableBody) {
-                        // Remove qualquer linha de "placeholder" que possa ter sido renderizada antes
-                        const placeholderRows = tableBody.querySelectorAll('tr[data-placeholder="true"]');
-                        placeholderRows.forEach(row => row.remove());
                         
-                        // Renderiza e insere a nova linha editável no final da tabela
-                        const headers = ["Código de Barras"]; // Apenas o header necessário
+                        // 2.1. Renderiza o HTML da nova linha (A(N+1))
+                        const headers = ["Código de Barras"];
                         const newRowHtml = renderEditableRow(sheetName, headers, nextRow);
-                        tableBody.insertAdjacentHTML('beforeend', newRowHtml);
                         
-                        // Foca na nova célula
-                        const newCell = document.querySelector(`td[data-sheet-range="${nextRange}"]`);
-                        if (newCell) {
-                            newCell.focus();
+                        // Cria um elemento DOM a partir do HTML
+                        const tempDiv = document.createElement('div');
+                        tempDiv.innerHTML = newRowHtml.trim();
+                        const newRow = tempDiv.firstChild;
+                        
+                        // 2.2. [LÓGICA SIMPLIFICADA] Apenas adiciona a nova linha no final.
+                        tableBody.appendChild(newRow);
+                        
+                        // 2.3. Obtém a nova célula e força o foco
+                        nextCell = newRow.querySelector(`td[data-sheet-range="${nextRange}"]`);
+                        
+                        if (nextCell) {
+                            setTimeout(() => {
+                                nextCell.focus();
+                                nextCell.textContent = ''; 
+                                nextCell.dataset.originalValue = '';
+                            }, 0);
                         }
                     }
                 }
@@ -815,7 +838,6 @@
                     showNotification(`Erro: ${result.error || 'Falha desconhecida ao importar XML.'}`, "error");
                 } else {
                     showNotification(result.message, "success");
-                    chaveInput.value = ''; // Limpa o campo após o sucesso
                     hidePasteModal();
                     // Recarrega a aba para mostrar os novos dados inseridos
                     switchTab("NOTA FISCAL");
@@ -969,11 +991,6 @@
 
         function showPasteModal() {
             document.getElementById('paste-modal').classList.remove('hidden');
-            // Foca o campo de input quando o modal abre
-            const chaveInput = document.getElementById("chave-acesso-input");
-            if (chaveInput) {
-                chaveInput.focus();
-            }
         }
 
         function hidePasteModal() {
@@ -1058,7 +1075,7 @@
                 }
             }
             
-            // NOVO: Adiciona o listener para o ENTER no campo da chave de acesso do modal
+            // Adiciona o listener para o ENTER no campo da chave de acesso do modal
             const chaveInput = document.getElementById("chave-acesso-input");
             if (chaveInput) {
                 chaveInput.addEventListener('keydown', function(event) {
