@@ -151,8 +151,8 @@
         // --- Variáveis de Configuração ---
         const BACKEND_URL = "https://back-end-nfe.onrender.com";
         const USER_ID = "web-user-123";
-        // --- NOVO: Constante para pré-renderização (1000 linhas) ---
-        const CONTAGEM_MAX_ROWS = 1000;
+        // --- ALTERADO: Constante para pré-renderização (3000 linhas) ---
+        const CONTAGEM_MAX_ROWS = 3000;
         
         // --- Gerenciamento de Abas ---
         const tabButtons = document.querySelectorAll('.tab-button');
@@ -270,7 +270,7 @@
         }
 
         /**
-         * Renderiza a tabela da Contagem Loja com 1000 linhas pré-criadas.
+         * Renderiza a tabela da Contagem Loja com 3000 linhas pré-criadas.
          */
         function renderContagemTableWithPredefinedRows(data) {
             const headers = ["Código de Barras"];
@@ -284,7 +284,7 @@
             
             let htmlBody = '';
             
-            // O loop começa na Linha 2 do Sheets e vai até a linha 1001 (1000 itens)
+            // O loop começa na Linha 2 do Sheets e vai até a linha 3001
             for (let i = 0; i < CONTAGEM_MAX_ROWS; i++) {
                 const sheetRowIndex = i + 2; 
                 const sheetRange = `A${sheetRowIndex}`;
@@ -336,7 +336,7 @@
         function renderTable(sheetName, data, headers, isEditable = false) {
             
             if (sheetName === "CONTAGEM LOJA") {
-                // Chama a nova função com 1000 linhas pré-renderizadas
+                // Chama a nova função com 3000 linhas pré-renderizadas
                 return renderContagemTableWithPredefinedRows(data);
             }
             
@@ -417,8 +417,6 @@
             html += `</tbody></table></div>`;
             return html;
         }
-
-        // --- As funções renderEmptyContagemTable e renderEditableRow foram removidas ---
         
         /**
          * Gerencia a busca de dados e a renderização do conteúdo da aba.
@@ -438,7 +436,7 @@
                 targetElementId = 'dynamic-table-content-contagem';
                 isEditable = true;
             } else if (sheetName === "CONFERENCIA") {
-                headers = ["Código de Barras", "Descrição do Produto", "Quantidade NF", "Contagem Loja", "Diferença", "Status"];
+                headers = ["Código de Barras", "Descrição do Produto", "Quantidade NF", "Contagem Loja", "Diferença", "OBS"];
                 targetElementId = 'dynamic-table-content-conferencia';
             }
 
@@ -454,7 +452,7 @@
                     }, 0);
                 }
                 
-                // --- NOVO: Foca a primeira célula editável da Contagem Loja ---
+                // --- Foca a primeira célula editável da Contagem Loja ---
                 if (sheetName === "CONTAGEM LOJA") {
                     const firstCell = document.querySelector('td[data-sheet-range="A2"]');
                     if (firstCell) {
@@ -480,8 +478,36 @@
             }
         }
         
-        // ... (applyConferenciaStyles e funções de API/AJAX inalteradas) ...
+        /**
+         * Aplica formatação condicional à coluna Diferença (E) na aba CONFERENCIA.
+         */
+        function applyConferenciaStyles(numCols) {
+            // A coluna 'Diferença' é a 5ª coluna (nth-child(5)) da tabela
+            const rows = document.querySelectorAll('#conferencia-content .mock-table tbody tr');
 
+            rows.forEach(row => {
+                const diffCell = row.querySelector('td:nth-child(5)');
+                if (!diffCell) return;
+
+                // Tenta converter o conteúdo da célula para número (substituindo vírgula por ponto para o parse)
+                let value = parseFloat(diffCell.textContent.replace(',', '.').trim());
+                
+                // Remove quaisquer classes de cor existentes
+                diffCell.classList.remove('bg-fee2e2', 'text-b91c1c', 'bg-green-100', 'text-green-700');
+
+                if (isNaN(value) || value === 0) {
+                    // Valor Zero ou Vazio (Neutro - sem cor)
+                    // Não adiciona classes de cor.
+                } else if (value < 0) {
+                    // Regra Vermelha (Negativo)
+                    diffCell.classList.add('bg-fee2e2', 'text-b91c1c');
+                } else if (value > 0) {
+                    // Regra Verde (Positivo)
+                    diffCell.classList.add('bg-green-100', 'text-green-700');
+                }
+            });
+        }
+        
         /**
          * Foca um elemento contenteditable, limpa o seu conteúdo 
          * e força o cursor a ser posicionado corretamente no início.
@@ -519,7 +545,6 @@
                 const element = event.target;
                 
                 // 1. Salva a edição na célula atual (AGUARDA a conclusão da requisição)
-                // Usamos o await para garantir que a gravação termine antes de mover o foco.
                 await handleCellEdit(element, sheetRange, sheetName); 
                 
                 // Força o elemento atual a perder o foco.
@@ -538,8 +563,8 @@
                     setTimeout(() => {
                         focusAndPlaceCursor(nextCell); 
                     }, 0);
-                } else if (nextRow > CONTAGEM_MAX_ROWS + 1) { // Linha 1002 (1000 linhas + header)
-                    showNotification("Limite de 1000 contagens atingido. Limpe os dados da aba NOTA FISCAL para recomeçar.", 'warning', 8000);
+                } else if (nextRow > CONTAGEM_MAX_ROWS + 1) { // Linha 3002 (3000 linhas + header)
+                    showNotification("Limite de 3000 contagens atingido. Limpe os dados da aba NOTA FISCAL para recomeçar.", 'warning', 8000);
                 } else {
                     // Se a célula não foi encontrada (o que não deve acontecer, pois foram pré-renderizadas)
                     console.error(`Célula seguinte (${nextRange}) não encontrada.`);
@@ -626,33 +651,171 @@
             }
         }
         
-        // ... (Restante das funções de Importação/Limpeza/Modal/Notificação inalteradas) ...
+        // --- Lógica de Limpeza Múltipla de Dados com Configurações ---
 
-        function applyConferenciaStyles(numCols) {
-            // A coluna 'Diferença' é a 5ª coluna (nth-child(5)) da tabela
-            const rows = document.querySelectorAll('#conferencia-content .mock-table tbody tr');
+        // CONFIGURAÇÃO ALTERADA: Inclui agora a limpeza da coluna 'F' (OBS) da aba CONFERENCIA
+        const sheetsConfig = [
+            { name: "NOTA FISCAL", range: 'A2:Z' },         // Limpa tudo da linha 2 em diante
+            { name: "CONTAGEM LOJA", range: 'A2:Z' },       // Limpa tudo da linha 2 em diante
+            { name: "CONFERENCIA", range: 'F2:F' },         // NOVO: Limpa apenas a coluna F (OBS) da Conferência
+        ];
 
-            rows.forEach(row => {
-                const diffCell = row.querySelector('td:nth-child(5)');
-                if (!diffCell) return;
+        /**
+         * Confirmação e chamada para limpar TODAS as planilhas.
+         */
+        function confirmClearAllSheets() {
+            const confirmationMessage = "ATENÇÃO: Você tem certeza que deseja APAGAR TODOS os dados de entrada (NOTA FISCAL e CONTAGEM LOJA) e as OBSERVAÇÕES da CONFERÊNCIA? Os dados serão atualizados automaticamente após a limpeza.";
+            
+            if (confirm(confirmationMessage)) {
+                clearMultipleSheets();
+            }
+        }
 
-                // Tenta converter o conteúdo da célula para número (substituindo vírgula por ponto para o parse)
-                let value = parseFloat(diffCell.textContent.replace(',', '.').trim());
-                
-                // Remove quaisquer classes de cor existentes
-                diffCell.classList.remove('bg-fee2e2', 'text-b91c1c', 'bg-green-100', 'text-green-700');
+        /**
+         * Envia os comandos de limpeza de dados para TODAS as abas configuradas.
+         */
+        async function clearMultipleSheets() {
+            showNotification(`Iniciando limpeza em lote das ${sheetsConfig.length} abas de entrada e da OBS da Conferência...`, 'loading', 30000); // 30s max load
 
-                if (isNaN(value) || value === 0) {
-                    // Valor Zero ou Vazio (Neutro - sem cor)
-                    // Não adiciona classes de cor.
-                } else if (value < 0) {
-                    // Regra Vermelha (Negativo)
-                    diffCell.classList.add('bg-fee2e2', 'text-b91c1c');
-                } else if (value > 0) {
-                    // Regra Verde (Positivo)
-                    diffCell.classList.add('bg-green-100', 'text-green-700');
+            let successCount = 0;
+            let errorCount = 0;
+
+            for (const config of sheetsConfig) {
+                // Passa o nome da aba e o range específico
+                const result = await clearSheetData(config.name, config.range, false); 
+                if (result.success) {
+                    successCount++;
+                } else {
+                    errorCount++;
+                    showNotification(`Erro ao limpar a aba '${config.name}'.`, 'error', 4000);
                 }
-            });
+            }
+
+            hideNotification(); // Remove a notificação de 'loading'
+
+            if (errorCount === 0) {
+                showNotification(`Limpeza global concluída! Os dados de entrada e as OBS foram limpos. As fórmulas foram preservadas.`, 'success', 5000);
+            } else {
+                 showNotification(`Limpeza global concluída com ${errorCount} erro(s). Verifique o console.`, 'warning', 8000);
+            }
+
+            // Recarrega a aba NOTA FISCAL (padrão) para refletir o estado vazio
+            switchTab('NOTA FISCAL'); 
+        }
+
+        /**
+         * Envia o comando de limpeza de dados para o backend Go.
+         */
+        async function clearSheetData(sheetName, range, showNotificationOnSuccess = true) {
+            if (showNotificationOnSuccess) {
+                showNotification(`Limpando dados da aba '${sheetName}' (Range: ${range})...`, 'loading');
+            }
+            
+            try {
+                const response = await fetch(`${BACKEND_URL}/clear-sheet-data`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sheet_name: sheetName, range: range })
+                });
+
+                const result = await response.json();
+                
+                if (showNotificationOnSuccess) {
+                    hideNotification();
+                }
+
+                if (!response.ok || result.error) {
+                    if (showNotificationOnSuccess) {
+                        showNotification(`Erro ao limpar '${sheetName}': ${result.error || 'Erro de servidor.'}`, 'error');
+                    }
+                    return { success: false, error: result.error || 'Erro de servidor.' };
+                } else {
+                    if (showNotificationOnSuccess) {
+                        showNotification(result.message, 'success');
+                    }
+                    return { success: true, message: result.message };
+                }
+
+            } catch (error) {
+                if (showNotificationOnSuccess) {
+                    hideNotification();
+                    showNotification(`Erro de Rede/CORS ao limpar dados.`, 'error');
+                }
+                console.error(`Erro de rede ao tentar limpar ${sheetName}:`, error);
+                return { success: false, error: 'Erro de rede/comunicação.' };
+            }
+        }
+
+
+        // --- Funções de Modal e Notificação (Tailwind) ---
+
+        function showPasteModal() {
+            document.getElementById('paste-modal').classList.remove('hidden');
+        }
+
+        function hidePasteModal() {
+            document.getElementById('paste-modal').classList.add('hidden');
+        }
+
+        function showNotification(message, type = 'success', duration = 5000) {
+            const container = document.getElementById('notifications-container');
+            
+            let bgColor = 'bg-green-500';
+            let icon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>`;
+
+            if (type === 'error') {
+                bgColor = 'bg-red-500';
+                icon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`;
+            } else if (type === 'loading' || type === 'warning') {
+                bgColor = 'bg-yellow-500';
+                icon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 ${type === 'loading' ? 'animate-spin' : ''}" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707" /></svg>`;
+            }
+
+            const notification = document.createElement('div');
+            notification.className = `p-4 text-white ${bgColor} rounded-lg shadow-xl flex items-center space-x-3 transition-opacity duration-300 opacity-0`;
+            notification.innerHTML = `
+                <div>${icon}</div>
+                <p class="font-medium">${message}</p>
+            `;
+
+            if (type === 'loading') {
+                notification.id = 'loading-notification';
+            }
+
+            container.appendChild(notification);
+            
+            setTimeout(() => notification.classList.remove('opacity-0'), 10); 
+
+            if (type !== 'loading') {
+                setTimeout(() => {
+                    notification.classList.add('opacity-0');
+                    notification.addEventListener('transitionend', () => notification.remove());
+                }, duration);
+            }
+        }
+
+        function hideNotification() {
+            const loadingNotification = document.getElementById('loading-notification');
+            if (loadingNotification) {
+                loadingNotification.remove();
+            }
+        }
+
+
+        function handleFileUploadChange(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const xmlContent = e.target.result;
+                importXMLData(xmlContent);
+                event.target.value = null; 
+            };
+            reader.onerror = function() {
+                showNotification("Erro ao ler o arquivo XML.", 'error');
+            };
+            reader.readAsText(file);
         }
 
         async function importXMLData(xmlContent) {
@@ -725,157 +888,6 @@
                 console.error("Erro ao importar XML por chave:", error);
                 showNotification("Erro de rede ao tentar importar XML pela chave.", "error");
             }
-        }
-
-        const sheetsConfig = [
-            { name: "NOTA FISCAL", range: 'A2:Z' },         // Limpa tudo da linha 2 em diante
-            { name: "CONTAGEM LOJA", range: 'A2:Z' },       // Limpa tudo da linha 2 em diante
-        ];
-
-        function confirmClearAllSheets() {
-            const confirmationMessage = "ATENÇÃO: Você tem certeza que deseja APAGAR TODOS os dados de entrada? Os dados serão atualizados automaticamente após a limpeza.";
-            
-            if (confirm(confirmationMessage)) {
-                clearMultipleSheets();
-            }
-        }
-
-        async function clearMultipleSheets() {
-            showNotification(`Iniciando limpeza em lote das ${sheetsConfig.length} abas de entrada...`, 'loading', 30000); // 30s max load
-
-            let successCount = 0;
-            let errorCount = 0;
-
-            for (const config of sheetsConfig) {
-                // Passa o nome da aba e o range específico
-                const result = await clearSheetData(config.name, config.range, false); 
-                if (result.success) {
-                    successCount++;
-                } else {
-                    errorCount++;
-                    showNotification(`Erro ao limpar a aba '${config.name}'.`, 'error', 4000);
-                }
-            }
-
-            hideNotification(); // Remove a notificação de 'loading'
-
-            if (errorCount === 0) {
-                showNotification(`Limpeza global concluída! ${successCount} abas de entrada limpas com sucesso. As fórmulas da Conferência foram preservadas.`, 'success', 5000);
-            } else {
-                 showNotification(`Limpeza global concluída com ${errorCount} erro(s). Verifique o console.`, 'warning', 8000);
-            }
-
-            // Recarrega a aba NOTA FISCAL (padrão) para refletir o estado vazio
-            switchTab('NOTA FISCAL'); 
-        }
-
-        async function clearSheetData(sheetName, range, showNotificationOnSuccess = true) {
-            if (showNotificationOnSuccess) {
-                showNotification(`Limpando dados da aba '${sheetName}' (Range: ${range})...`, 'loading');
-            }
-            
-            try {
-                const response = await fetch(`${BACKEND_URL}/clear-sheet-data`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ sheet_name: sheetName, range: range })
-                });
-
-                const result = await response.json();
-                
-                if (showNotificationOnSuccess) {
-                    hideNotification();
-                }
-
-                if (!response.ok || result.error) {
-                    if (showNotificationOnSuccess) {
-                        showNotification(`Erro ao limpar '${sheetName}': ${result.error || 'Erro de servidor.'}`, 'error');
-                    }
-                    return { success: false, error: result.error || 'Erro de servidor.' };
-                } else {
-                    if (showNotificationOnSuccess) {
-                        showNotification(result.message, 'success');
-                    }
-                    return { success: true, message: result.message };
-                }
-
-            } catch (error) {
-                if (showNotificationOnSuccess) {
-                    hideNotification();
-                    showNotification(`Erro de Rede/CORS ao limpar dados.`, 'error');
-                }
-                console.error(`Erro de rede ao tentar limpar ${sheetName}:`, error);
-                return { success: false, error: 'Erro de rede/comunicação.' };
-            }
-        }
-
-        function showPasteModal() {
-            document.getElementById('paste-modal').classList.remove('hidden');
-        }
-
-        function hidePasteModal() {
-            document.getElementById('paste-modal').classList.add('hidden');
-        }
-
-        function showNotification(message, type = 'success', duration = 5000) {
-            const container = document.getElementById('notifications-container');
-            
-            let bgColor = 'bg-green-500';
-            let icon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>`;
-
-            if (type === 'error') {
-                bgColor = 'bg-red-500';
-                icon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`;
-            } else if (type === 'loading' || type === 'warning') {
-                bgColor = 'bg-yellow-500';
-                icon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 ${type === 'loading' ? 'animate-spin' : ''}" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707" /></svg>`;
-            }
-
-            const notification = document.createElement('div');
-            notification.className = `p-4 text-white ${bgColor} rounded-lg shadow-xl flex items-center space-x-3 transition-opacity duration-300 opacity-0`;
-            notification.innerHTML = `
-                <div>${icon}</div>
-                <p class="font-medium">${message}</p>
-            `;
-
-            if (type === 'loading') {
-                notification.id = 'loading-notification';
-            }
-
-            container.appendChild(notification);
-            
-            setTimeout(() => notification.classList.remove('opacity-0'), 10); 
-
-            if (type !== 'loading') {
-                setTimeout(() => {
-                    notification.classList.add('opacity-0');
-                    notification.addEventListener('transitionend', () => notification.remove());
-                }, duration);
-            }
-        }
-
-        function hideNotification() {
-            const loadingNotification = document.getElementById('loading-notification');
-            if (loadingNotification) {
-                loadingNotification.remove();
-            }
-        }
-
-
-        function handleFileUploadChange(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const xmlContent = e.target.result;
-                importXMLData(xmlContent);
-                event.target.value = null; 
-            };
-            reader.onerror = function() {
-                showNotification("Erro ao ler o arquivo XML.", 'error');
-            };
-            reader.readAsText(file);
         }
 
         // --- Inicialização ---
