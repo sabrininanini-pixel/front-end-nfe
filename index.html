@@ -333,7 +333,7 @@
             return `
                 <div id="contagem-loja-content">
                     <div class="p-4 bg-yellow-50 border border-yellow-200 rounded-lg mb-4 print-hidden">
-                        <p class="font-semibold text-yellow-800 text-lg">Escanear abaixo</p>
+                        <p class="font-semibold text-yellow-800 text-lg">Escanear abaixo novo codigo</p>
                     </div>
                     <div id="dynamic-table-content-contagem">
                         <p class="text-center text-gray-400 py-10">Carregando dados...</p>
@@ -485,7 +485,8 @@
             if (isEditable && sheetName === "CONTAGEM LOJA") {
                 const nextRowIndex = lastRowIndexInSheet + 1;
                 
-                if (lastRowIndexInSheet !== 0) {
+                // Se lastRowIndexInSheet for 0, significa que a tabela estava vazia e a linha já foi renderizada por renderEmptyContagemTable
+                if (lastRowIndexInSheet !== 0) { 
                     // A tabela já tem conteúdo, então adicionamos a próxima linha para inserção.
                     html += renderEditableRow(sheetName, headers, nextRowIndex, true);
                 }
@@ -708,8 +709,32 @@
             }
         }
 
+        /**
+         * Foca um elemento contenteditable, limpa o seu conteúdo 
+         * e força o cursor a ser posicionado corretamente no início.
+         */
+        function focusAndPlaceCursor(element) {
+            // 1. Limpa o valor e foca
+            element.textContent = ''; 
+            element.dataset.originalValue = '';
+            element.focus();
 
-        // --- Funções de API e Utilitários (demais funções inalteradas) ---
+            // 2. Tenta forçar o cursor a ficar no início do elemento
+            try {
+                if (window.getSelection && document.createRange) {
+                    const range = document.createRange();
+                    range.selectNodeContents(element);
+                    range.collapse(false); // Move o cursor para o final (que é o início se a célula estiver vazia)
+                    const selection = window.getSelection();
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+                }
+            } catch (e) {
+                // Fallback para dispositivos onde a API de seleção não é ideal
+                console.error("Erro ao tentar posicionar o cursor, usando foco simples.", e);
+            }
+        }
+
 
         /**
          * Lida com a tecla pressionada na célula da Contagem Loja (Enter).
@@ -724,7 +749,7 @@
                 // 1. Salva a edição na célula atual (AGUARDA a conclusão da requisição para evitar falha no foco)
                 await handleCellEdit(element, sheetRange, sheetName); 
                 
-                // [AJUSTE CRÍTICO PARA MOBILE] Força o elemento atual a perder o foco. 
+                // [NOVO AJUSTE] Força o elemento atual a perder o foco ANTES de procurar o próximo.
                 element.blur(); 
 
                 const currentRow = parseInt(sheetRange.slice(1));
@@ -734,37 +759,28 @@
                 let nextCell = document.querySelector(`td[data-sheet-range="${nextRange}"]`);
                 
                 // 2. Tenta pular para a próxima célula/linha
-                if (nextCell) {
-                    // Caso 1: A célula A(N+1) existe no DOM (ex: Linha 2000 já carregada)
-                    nextCell.textContent = ''; 
-                    nextCell.dataset.originalValue = '';
-                    
-                    // Continua usando setTimeout(0) para priorizar a renderização do novo estado e foco estável
-                    setTimeout(() => nextCell.focus(), 0);
-                    
-                } else {
+                if (!nextCell) {
                     // Caso 2: A célula A(N+1) não existe. Precisa criar a nova linha (ex: Linha 2001).
                     const tableBody = document.querySelector('#contagem-table tbody');
                     if (tableBody) {
-                        
-                        // 2.1. Renderiza o HTML da nova linha (A(N+1))
                         const headers = ["Código de Barras"];
                         const newRowHtml = renderEditableRow(sheetName, headers, nextRow);
                         
-                        // 2.2. [LÓGICA SIMPLIFICADA SOLICITADA] Insere o HTML diretamente no final do tbody
+                        // Insere o HTML diretamente no final do tbody
                         tableBody.insertAdjacentHTML('beforeend', newRowHtml.trim());
                         
-                        // 2.3. Obtém a nova célula (que agora foi inserida) e força o foco
+                        // Obtém a nova célula (que agora foi inserida)
                         nextCell = document.querySelector(`td[data-sheet-range="${nextRange}"]`);
-
-                        if (nextCell) {
-                            setTimeout(() => {
-                                nextCell.focus();
-                                nextCell.textContent = ''; 
-                                nextCell.dataset.originalValue = '';
-                            }, 0);
-                        }
                     }
+                }
+                
+                // 3. Foca a próxima célula (se ela existe ou foi criada)
+                if (nextCell) {
+                    // Usamos um timeout de 0 para garantir que o DOM esteja pronto para o foco após a inserção (Caso 2)
+                    // e que o blur() tenha sido completamente processado (Caso 1 e 2).
+                    setTimeout(() => {
+                        focusAndPlaceCursor(nextCell); 
+                    }, 0);
                 }
             }
         }
