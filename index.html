@@ -333,7 +333,7 @@
             return `
                 <div id="contagem-loja-content">
                     <div class="p-4 bg-yellow-50 border border-yellow-200 rounded-lg mb-4 print-hidden">
-                        <p class="font-semibold text-yellow-800 text-lg">Escanear abaixo correto</p>
+                        <p class="font-semibold text-yellow-800 text-lg">Escanear abaixo teste</p>
                     </div>
                     <div id="dynamic-table-content-contagem">
                         <p class="text-center text-gray-400 py-10">Carregando dados...</p>
@@ -533,9 +533,11 @@
                 if (targetElement) {
                     targetElement.innerHTML = renderContagemTableFixedRows(data, headers);
                     
-                    // NOVO: Chama a função que encontra a primeira célula vazia e foca nela
+                    // NOVO: Chama a função que encontra a primeira célula vazia, foca nela e rola a tela
+                    // Usamos setTimeout e requestAnimationFrame para garantir que a lógica de foco
+                    // e cursor seja executada após a renderização e o foco padrão do navegador.
                     setTimeout(() => {
-                        focusNextEmptyContagemCell();
+                        requestAnimationFrame(focusNextEmptyContagemCell);
                     }, 50);
                 }
 
@@ -556,14 +558,14 @@
         }
         
         /**
-         * Encontra a primeira célula vazia (após a última preenchida) na Contagem Loja e foca nela.
-         * Se a célula já estiver preenchida, não apaga o conteúdo, apenas move o foco para o final.
+         * Encontra a primeira célula vazia (após a última preenchida) na Contagem Loja, 
+         * foca nela e rola a tela.
          */
         function focusNextEmptyContagemCell() {
             const cells = document.querySelectorAll('#contagem-table td[contenteditable="true"]');
             
-            // Variável para armazenar a célula a ser focada (padrão é a primeira, caso todas estejam vazias)
-            let cellToFocus = cells[0]; 
+            // Inicia como nulo.
+            let cellToFocus = null; 
             
             // 1. Itera sobre todas as células para encontrar a primeira que está vazia
             for (let i = 0; i < cells.length; i++) {
@@ -578,13 +580,29 @@
                 }
             }
             
-            // 2. Foca na célula encontrada
+            // 2. Determina a célula final de foco (se houver)
+            if (!cellToFocus) {
+                // Se nenhuma célula vazia foi encontrada (lista cheia ou grande), 
+                // foca na última célula renderizada (e avisa o usuário).
+                if (cells.length > 0) {
+                    cellToFocus = cells[cells.length - 1];
+                    showNotification("Aviso: A lista de contagem pode estar cheia (3000 linhas). Foco na última célula.", 'warning', 5000);
+                }
+            }
+            
+            // 3. Foca na célula (se encontrada), ajusta o cursor e rola a tela
             if (cellToFocus) {
+                // Rola o contêiner para que a célula fique visível
+                cellToFocus.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                
                 cellToFocus.focus();
-                // Move o cursor para o final do conteúdo (mitiga a sobrescrita acidental)
+                
+                // moveCursorToEnd é crucial para que o navegador não selecione o texto,
+                // o que causaria a sobrescrita pelo próximo caractere digitado.
                 moveCursorToEnd(cellToFocus); 
             }
         }
+
 
         /**
          * Utilitário para mover o cursor de edição para o final do texto em uma célula contenteditable.
@@ -593,6 +611,8 @@
             const range = document.createRange();
             const selection = window.getSelection();
             
+            // Se o elemento não tiver conteúdo, ele pode não ter childNodes. 
+            // Células vazias não têm esse problema, mas as preenchidas sim.
             if (element.childNodes.length > 0) {
                  // Move para o final do primeiro nó de texto (que deve ser o único)
                  const node = element.childNodes[0];
@@ -726,6 +746,7 @@
                 
                 if (nextCell) {
                     // Se a célula existe (dentro das 3000 linhas), limpa o conteúdo e foca
+                    // Isso garante que a próxima célula já esteja limpa e pronta para o próximo scan.
                     nextCell.textContent = '';
                     nextCell.dataset.originalValue = '';
                     nextCell.focus();
@@ -835,10 +856,14 @@
                 showNotification("Erro de rede ao tentar importar XML pela chave.", "error");
             }
         }
-
+        
+        /**
+         * Função CRUCIAL: Envia o novo valor da célula editável para o Google Sheets.
+         */
         async function handleCellEdit(element, sheetRange, sheetName) {
+            // OBSERVAÇÃO: Corrigido o acesso ao data-original-value para camelCase (dataset.originalValue)
             const newValue = element.textContent.trim();
-            const originalValue = element.dataset.originalValue;
+            const originalValue = element.dataset.originalValue; 
 
             if (newValue === originalValue) {
                 return;
@@ -859,8 +884,10 @@
 
                 if (!response.ok || result.error) {
                     showNotification(`Erro ao salvar ${sheetRange}: ${result.error || 'Erro de servidor.'}`, 'error');
-                    element.textContent = originalValue;
+                    // Reverte o valor da célula em caso de falha de salvamento
+                    element.textContent = originalValue; 
                 } else {
+                    // Atualiza o valor original para o novo valor salvo
                     element.dataset.originalValue = newValue;
                     showNotification(`Célula ${sheetRange} atualizada com sucesso para '${newValue}'.`, 'success', 2000);
                 }
@@ -869,6 +896,7 @@
                 element.classList.remove('saving-status');
                 console.error("Erro na comunicação para atualizar célula:", error);
                 showNotification(`Erro de Rede ao tentar atualizar ${sheetRange}.`, 'error');
+                // Reverte o valor da célula em caso de falha de rede
                 element.textContent = originalValue;
             }
         }
@@ -877,7 +905,7 @@
         const sheetsConfig = [
             { name: "NOTA FISCAL", range: 'A2:Z' },
             { name: "CONTAGEM LOJA", range: 'A2:Z' },
-            // NOVO: Adicionado para limpar apenas a coluna OBS (F) da aba Conferência
+            // Coluna OBS (F) na Conferência
             { name: "CONFERENCIA", range: 'F2:F' } 
         ];
 
@@ -1035,11 +1063,7 @@
         // --- Inicialização ---
 
         document.addEventListener('DOMContentLoaded', () => {
-            if (typeof window.handleCellEdit !== 'function') {
-                window.handleCellEdit = async function(element, sheetRange, sheetName) {
-                }
-            }
-            
+            // Garante que o listener para ENTER no campo da chave de acesso do modal funcione
             const chaveInput = document.getElementById("chave-acesso-input");
             if (chaveInput) {
                 chaveInput.addEventListener('keydown', function(event) {
