@@ -39,9 +39,21 @@
             font-weight: bold;
             text-align: center; /* Centraliza o número para melhor visualização */
         }
-
-        /* --- LARGURAS FIXAS CONFERENCIA (70px) --- */
-        /* 3ª (Qtd NF), 4ª (Contagem Loja), 5ª (Diferença), 6ª (OBS) */
+        
+        /* --- LARGURAS FIXAS CONFERENCIA --- */
+        
+        /* NOVO: 1ª Coluna: Código de Barras (210px) */
+        #conferencia-table th:nth-child(1),
+        #conferencia-table td:nth-child(1) {
+             width: 210px; 
+             min-width: 210px;
+             max-width: 210px;
+             overflow: hidden; 
+             text-overflow: ellipsis;
+             white-space: nowrap;
+        }
+        
+        /* 3ª (Qtd NF), 4ª (Contagem Loja), 5ª (Diferença), 6ª (OBS) - 70px */
         #conferencia-table th:nth-child(3), 
         #conferencia-table td:nth-child(3),
         #conferencia-table th:nth-child(4), 
@@ -126,7 +138,7 @@
             text-align: left !important;
         }
         
-        /* NOVO: Classe para Código de Barras (210px) */
+        /* Classe para Código de Barras (210px) */
         .scroll-mode-cell-code {
             width: 210px !important; 
             min-width: 210px !important;
@@ -197,14 +209,14 @@
 </head>
 <body class="bg-gray-50 min-h-screen">
 
-    <div class="container mx-auto p-4 md:p-8">
+    <div class="container mx-auto px-0 py-4 md:p-8">
         <header class="mb-6 print-hidden">
-            <h1 class="text-3xl font-extrabold text-gray-900">
+            <h1 class="text-3xl font-extrabold text-gray-900 md:px-0 px-4">
                 Conferir Nota Fiscal
             </h1>
         </header>
 
-        <div class="bg-white rounded-xl shadow-lg border border-gray-100 p-6">
+        <div class="bg-white rounded-xl shadow-lg border border-gray-100 p-6 md:p-6 sm:px-4">
 
             <nav class="flex border-b border-gray-200 print-hidden">
                 <button data-tab="NOTA FISCAL" class="tab-button px-4 py-3 text-sm font-medium border-b-2 border-indigo-600 text-indigo-600 transition-colors duration-150">NOTA FISCAL</button>
@@ -374,6 +386,7 @@
 
             // A coluna 'OBS' (índice 5, 6ª coluna) é editável
             const isConferencia = sheetName === "CONFERENCIA";
+            // A coluna "Status" da Conferência foi renomeada para "OBS" na renderização anterior
             const isStatusEditable = isConferencia;
             
             // Adiciona ID à tabela para ser alvo do toggleScrollMode
@@ -429,6 +442,7 @@
                     // Lógica de Edição:
                     // 1. CONTAGEM LOJA: APENAS A COLUNA 'A' (Índice 0) é editável
                     // 2. CONFERENCIA: APENAS A COLUNA 'OBS' (Índice 5) é editável
+                    // Note: headers[5] é "Status" (no arquivo anterior eu chamei de OBS, mantendo a lógica de i=5)
                     const isCellEditable = (isEditable && i === 0) || (isStatusEditable && i === 5);
 
                     if (isCellEditable) {
@@ -448,9 +462,11 @@
                     // Aplica a classe inicial de expansão (padrão desktop/inicial)
                     let columnsToExpand = [];
                     if (isConferencia) {
-                         columnsToExpand = [2, 3, 4, 5, 6]; // Descrição, Qtd NF, Contagem, Diferença, OBS
+                         // Colunas 1 (Código), 2 (Descrição), 3 (Qtd NF), 4 (Contagem), 5 (Diferença), 6 (OBS)
+                         columnsToExpand = [1, 2, 3, 4, 5, 6]; 
                     } else if (sheetName === "NOTA FISCAL") {
-                         columnsToExpand = [1, 2, 3, 4]; // Descrição, Quantidade, Código, Item
+                         // Colunas 1 (Descrição), 2 (Quantidade), 3 (Código), 4 (Item)
+                         columnsToExpand = [1, 2, 3, 4]; 
                     }
                     
                     // Coluna 1 (índice 0) corresponde a nth-child(1)
@@ -628,11 +644,11 @@
             let columnsToTarget = [];
             const scrollClassDesc = 'scroll-mode-cell';
             const scrollClassNumeric = 'scroll-mode-cell-numeric';
-            const scrollClassCode = 'scroll-mode-cell-code'; // Nova classe 210px
+            const scrollClassCode = 'scroll-mode-cell-code'; 
 
             if (sheetName === 'CONFERENCIA') {
-                // Colunas Alvo (Índices): 2 (Descrição), 3 (Qtd NF), 4 (Contagem), 5 (Diferença), 6 (OBS)
-                columnsToTarget = [2, 3, 4, 5, 6];
+                // Colunas Alvo (Índices): 1 (Código), 2 (Descrição), 3 (Qtd NF), 4 (Contagem), 5 (Diferença), 6 (OBS)
+                columnsToTarget = [1, 2, 3, 4, 5, 6];
             } else if (sheetName === 'NOTA FISCAL') {
                 // Colunas Alvo (Índices): 1 (Descrição), 2 (Quantidade), 3 (Código), 4 (Item)
                 columnsToTarget = [1, 2, 3, 4];
@@ -653,12 +669,17 @@
                         cell.classList.remove('expand-mode-cell');
 
                         if (sheetName === 'CONFERENCIA') {
-                            // CONFERENCIA: colunas 3, 4, 5, 6 são 70px
-                            const isNumericColumn = colIndex >= 3 && colIndex <= 6;
-                            if (isNumericColumn) {
-                                cell.classList.add(scrollClassNumeric);
-                            } else { // Coluna 2 (Descrição)
+                            // Coluna 1 (Código de Barras) é 210px
+                            if (colIndex === 1) {
+                                cell.classList.add(scrollClassCode); 
+                            } 
+                            // Coluna 2 (Descrição) é 150px (padrão)
+                            else if (colIndex === 2) {
                                 cell.classList.add(scrollClassDesc);
+                            }
+                            // Colunas 3, 4, 5, 6 são 70px
+                            else if (colIndex >= 3 && colIndex <= 6) {
+                                cell.classList.add(scrollClassNumeric);
                             }
                             
                         } else if (sheetName === 'NOTA FISCAL') {
