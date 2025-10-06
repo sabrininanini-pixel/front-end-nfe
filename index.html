@@ -333,7 +333,7 @@
             return `
                 <div id="contagem-loja-content">
                     <div class="p-4 bg-yellow-50 border border-yellow-200 rounded-lg mb-4 print-hidden">
-                        <p class="font-semibold text-yellow-800 text-lg">Escanear abaixo 123</p>
+                        <p class="font-semibold text-yellow-800 text-lg">Escanear abaixo</p>
                     </div>
                     <div id="dynamic-table-content-contagem">
                         <p class="text-center text-gray-400 py-10">Carregando dados...</p>
@@ -373,7 +373,7 @@
 
         /**
          * Renderiza a tabela da Contagem Loja com 3000 linhas pré-renderizadas.
-         * A primeira célula editável (A2) é mapeada para a primeira linha de dados do Sheets.
+         * A primeira célula editável (A1) é mapeada para a primeira linha de dados do Sheets.
          */
         function renderContagemTableFixedRows(data, headers) {
             const fixedRows = 3000;
@@ -392,8 +392,8 @@
                         <tbody>`;
 
             for (let rowIndex = 0; rowIndex < fixedRows; rowIndex++) {
-                // Mapeamento: rowIndex 0 (primeira linha do <tbody>) corresponde à linha 2 do Sheets (A2)
-                const sheetRowIndex = rowIndex + 2; 
+                // Mapeamento CORRIGIDO: rowIndex 0 (primeira linha do <tbody>) corresponde à linha 1 do Sheets (A1)
+                const sheetRowIndex = rowIndex + 1; // CORRIGIDO PARA MAPEAR DIRETAMENTE A PARTIR DE A1
                 const sheetRange = `A${sheetRowIndex}`;
                 
                 // Pega o valor existente da célula (se houver)
@@ -535,7 +535,7 @@
                 if (targetElement) {
                     targetElement.innerHTML = renderContagemTableFixedRows(data, headers);
                     
-                    // NOVO: Chama a função que encontra a primeira célula vazia, foca nela e rola a tela
+                    // NOVO: Chama a função que encontra a primeira célula vazia após a última preenchida, foca nela e rola a tela
                     setTimeout(() => {
                         requestAnimationFrame(focusNextEmptyContagemCell);
                     }, 100); 
@@ -558,37 +558,42 @@
         }
         
         /**
-         * Encontra a primeira célula vazia (após a última preenchida) na Contagem Loja, 
+         * CORRIGIDO: Encontra a primeira célula vazia (após a última preenchida) na Contagem Loja, 
          * foca nela e rola a tela.
+         * Esta lógica garante que o foco sempre vá para a célula logo após a última contagem inserida, 
+         * ignorando buracos (células vazias) no meio da lista.
          */
         function focusNextEmptyContagemCell() {
             // Seleciona todas as células editáveis (TD), ignorando o cabeçalho (TH)
             const cells = document.querySelectorAll('#contagem-table td[contenteditable="true"]');
             
-            // Inicia como nulo.
             let cellToFocus = null; 
+            // Variável para rastrear o índice da ÚLTIMA célula preenchida
+            let lastFilledCellIndex = -1;
             
-            // 1. Itera sobre todas as células para encontrar a primeira que está vazia
+            // 1. Itera sobre todas as células para encontrar o índice da última célula preenchida
             for (let i = 0; i < cells.length; i++) {
                 const cell = cells[i];
                 // Verifica o conteúdo renderizado (que veio do backend)
                 const value = cell.textContent.trim();
                 
-                if (value === '') {
-                    // Encontrou a primeira célula vazia (ou A2 se a lista estiver vazia).
-                    cellToFocus = cell;
-                    break; 
+                if (value !== '') {
+                    // Atualiza o índice da última célula que contém um valor
+                    lastFilledCellIndex = i; 
                 }
             }
             
-            // 2. Determina a célula final de foco (se houver)
-            if (!cellToFocus) {
-                // Se nenhuma célula vazia foi encontrada (lista cheia ou grande), 
-                // foca na última célula preenchida.
-                if (cells.length > 0) {
-                    cellToFocus = cells[cells.length - 1];
-                    showNotification("Aviso: A lista de contagem pode estar cheia (3000 linhas). Foco na última célula preenchida.", 'warning', 5000);
-                }
+            // 2. Determina a célula alvo (aquela imediatamente após a última preenchida)
+            const targetCellIndex = lastFilledCellIndex + 1;
+            
+            if (targetCellIndex < cells.length) {
+                // Se o índice alvo estiver dentro do limite das células pré-renderizadas
+                cellToFocus = cells[targetCellIndex];
+            } else if (cells.length > 0) {
+                 // Se todas as células estiverem preenchidas (targetCellIndex == cells.length), 
+                 // o foco vai para a última célula preenchida.
+                 cellToFocus = cells[cells.length - 1];
+                 showNotification("Aviso: A lista de contagem pode estar cheia (3000 linhas). Foco na última célula preenchida.", 'warning', 5000);
             }
             
             // 3. Foca na célula (se encontrada), ajusta o cursor e rola a tela
@@ -898,7 +903,7 @@
                     element.textContent = originalValue; 
                 } else {
                     // Atualiza o valor original para o novo valor salvo
-                    element.dataset.originalValue = newValue;
+                    element.dataset.original-value = newValue;
                     showNotification(`Célula ${sheetRange} atualizada com sucesso para '${newValue}'.`, 'success', 2000);
                 }
 
@@ -914,7 +919,7 @@
         
         const sheetsConfig = [
             { name: "NOTA FISCAL", range: 'A2:Z' },
-            { name: "CONTAGEM LOJA", range: 'A2:Z' },
+            { name: "CONTAGEM LOJA", range: 'A1:Z' }, 
             // Coluna OBS (F) na Conferência
             { name: "CONFERENCIA", range: 'F2:F' } 
         ];
