@@ -715,16 +715,16 @@
          * Lida com a tecla pressionada na célula da Contagem Loja (Enter).
          * LÓGICA SIMPLIFICADA SOLICITADA PELO USUÁRIO APLICADA.
          */
-        function handleContagemKeyPress(event, sheetRange, sheetName) {
+        async function handleContagemKeyPress(event, sheetRange, sheetName) {
             if (event.keyCode === 13) {
                 event.preventDefault();
                 
                 const element = event.target;
-                // 1. Salva a edição na célula atual
-                handleCellEdit(element, sheetRange, sheetName); 
+                
+                // 1. Salva a edição na célula atual (AGUARDA a conclusão da requisição para evitar falha no foco)
+                await handleCellEdit(element, sheetRange, sheetName); 
                 
                 // [AJUSTE CRÍTICO PARA MOBILE] Força o elemento atual a perder o foco. 
-                // Isso ajuda o navegador móvel a aceitar o foco subsequente.
                 element.blur(); 
 
                 const currentRow = parseInt(sheetRange.slice(1));
@@ -735,13 +735,15 @@
                 
                 // 2. Tenta pular para a próxima célula/linha
                 if (nextCell) {
-                    // Caso 1: A célula A(N+1) existe no DOM
+                    // Caso 1: A célula A(N+1) existe no DOM (ex: Linha 2000 já carregada)
                     nextCell.textContent = ''; 
                     nextCell.dataset.originalValue = '';
-                    // Continua usando setTimeout(0) para priorizar a renderização do novo estado.
+                    
+                    // Continua usando setTimeout(0) para priorizar a renderização do novo estado e foco estável
                     setTimeout(() => nextCell.focus(), 0);
+                    
                 } else {
-                    // Caso 2: A célula A(N+1) não existe. Precisa criar a nova linha.
+                    // Caso 2: A célula A(N+1) não existe. Precisa criar a nova linha (ex: Linha 2001).
                     const tableBody = document.querySelector('#contagem-table tbody');
                     if (tableBody) {
                         
@@ -749,18 +751,12 @@
                         const headers = ["Código de Barras"];
                         const newRowHtml = renderEditableRow(sheetName, headers, nextRow);
                         
-                        // Cria um elemento DOM a partir do HTML
-                        const tempDiv = document.createElement('div');
-                        tempDiv.innerHTML = newRowHtml.trim();
-                        const newRow = tempDiv.firstChild;
+                        // 2.2. [LÓGICA SIMPLIFICADA SOLICITADA] Insere o HTML diretamente no final do tbody
+                        tableBody.insertAdjacentHTML('beforeend', newRowHtml.trim());
                         
-                        // 2.2. [LÓGICA SIMPLIFICADA] Apenas anexa a nova linha ao final do corpo da tabela.
-                        // Esta é a lógica que o usuário confirmou funcionar perfeitamente em dispositivos móveis.
-                        tableBody.appendChild(newRow);
-                        
-                        // 2.3. Obtém a nova célula e força o foco (com setTimeout para o DOM processar)
-                        nextCell = newRow.querySelector(`td[data-sheet-range="${nextRange}"]`);
-                        
+                        // 2.3. Obtém a nova célula (que agora foi inserida) e força o foco
+                        nextCell = document.querySelector(`td[data-sheet-range="${nextRange}"]`);
+
                         if (nextCell) {
                             setTimeout(() => {
                                 nextCell.focus();
