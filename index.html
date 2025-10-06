@@ -713,7 +713,7 @@
 
         /**
          * Lida com a tecla pressionada na célula da Contagem Loja (Enter).
-         * CORRIGIDO: Uso de insertBefore para criar a nova linha na posição correta, mesmo que a linha de destino estivesse vazia no Sheets.
+         * CORRIGIDO: Adicionado element.blur() para forçar a saída do teclado virtual no mobile antes do foco.
          */
         function handleContagemKeyPress(event, sheetRange, sheetName) {
             if (event.keyCode === 13) {
@@ -721,7 +721,11 @@
                 
                 const element = event.target;
                 // 1. Salva a edição na célula atual
-                handleCellEdit(element, sheetRange, sheetName);
+                handleCellEdit(element, sheetRange, sheetName); 
+                
+                // [AJUSTE CRÍTICO PARA MOBILE] Força o elemento atual a perder o foco. 
+                // Isso ajuda o navegador móvel a aceitar o foco subsequente.
+                element.blur(); 
 
                 const currentRow = parseInt(sheetRange.slice(1));
                 const nextRow = currentRow + 1;
@@ -731,12 +735,13 @@
                 
                 // 2. Tenta pular para a próxima célula/linha
                 if (nextCell) {
-                    // Caso 1: A célula A(N+1) existe no DOM (foi preenchida ou pré-criada na última linha)
+                    // Caso 1: A célula A(N+1) existe no DOM
                     nextCell.textContent = ''; 
                     nextCell.dataset.originalValue = '';
+                    // Continua usando setTimeout(0) para priorizar a renderização do novo estado.
                     setTimeout(() => nextCell.focus(), 0);
                 } else {
-                    // Caso 2: A célula A(N+1) não existe. Precisa criar a nova linha e inseri-la no lugar correto.
+                    // Caso 2: A célula A(N+1) não existe. Precisa criar a nova linha.
                     const tableBody = document.querySelector('#contagem-table tbody');
                     if (tableBody) {
                         
