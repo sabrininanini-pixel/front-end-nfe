@@ -40,7 +40,7 @@
             text-align: center; /* Centraliza o número para melhor visualização */
         }
 
-        /* Define a largura da coluna Status (6ª coluna) igual à Quantidade NF (3ª coluna) */
+        /* Define a largura da coluna Status (6ª coluna) e Quantidade NF (3ª coluna) */
         #conferencia-content .mock-table th:nth-child(3), 
         #conferencia-content .mock-table td:nth-child(3),
         #conferencia-content .mock-table th:nth-child(6), 
@@ -51,6 +51,30 @@
              overflow: hidden;
              text-overflow: ellipsis;
              white-space: nowrap;
+        }
+
+        /* ---------------------------------------------------------------- */
+        /* --- ESTILOS DO MODO SCROLL/EXPANDIDO (COLUNA DESCRIÇÃO - 2ª) --- */
+        /* ---------------------------------------------------------------- */
+
+        /* Classe para MODO SCROLL: Força a coluna a ter uma largura fixa/máxima, ativa o scroll interno e esconde o texto que extrapola */
+        .scroll-mode-cell {
+            /* Largura máxima no modo scroll para evitar que a coluna se expanda */
+            max-width: 250px; 
+            min-width: 250px; 
+            /* Permite o scroll horizontal DENTRO da célula */
+            overflow-x: scroll;
+            /* Garante que o texto fique em uma linha para o scroll funcionar */
+            white-space: nowrap;
+        }
+
+        /* Classe para MODO EXPANDIDO: Permite que o conteúdo defina a largura da coluna */
+        .expand-mode-cell {
+            /* Remove as restrições e permite expansão */
+            max-width: none;
+            min-width: 0;
+            overflow-x: visible;
+            white-space: normal;
         }
 
 
@@ -106,6 +130,12 @@
                 border-right: none;
             }
             
+            /* Remove forçadamente o scroll e truncamento na impressão */
+            .scroll-mode-cell {
+                max-width: none !important;
+                overflow-x: visible !important;
+                white-space: normal !important;
+            }
         }
 
     </style>
@@ -242,7 +272,7 @@
         }
         
         /**
-         * Retorna o HTML completo da aba CONFERENCIA (com botão de impressão).
+         * Retorna o HTML completo da aba CONFERENCIA (com botão de impressão e modo scroll).
          * NOVO: Adicionado o botão "Modo Scroll".
          */
         function renderConferenciaLayout() {
@@ -287,13 +317,13 @@
             // Define se a coluna "Status" (índice 5 da Conferência) deve ser editável
             const isStatusEditable = sheetName === "CONFERENCIA";
             
-            // NOVO: Adiciona ID ao wrapper da tabela para controle de scroll na Conferência
-            const tableWrapperID = isStatusEditable ? 'conferencia-table-wrapper' : '';
+            // Adiciona ID à tabela quando for CONFERENCIA para ser alvo do toggleScrollMode
+            const tableID = isStatusEditable ? 'conferencia-table' : (isEditable ? 'contagem-table' : '');
 
 
             let html = `
-                <div id="${tableWrapperID}" class="rounded-lg border border-gray-200 overflow-x-auto shadow-sm">
-                    <table class="mock-table w-full text-sm" id="${isEditable ? 'contagem-table' : (isStatusEditable ? 'conferencia-table' : '')}">
+                <div class="rounded-lg border border-gray-200 overflow-x-auto shadow-sm">
+                    <table class="mock-table w-full text-sm" id="${tableID}">
                         <thead class="bg-gray-50 sticky top-0">
                             <tr>`;
             
@@ -350,6 +380,13 @@
                         
                         cellClasses = 'cursor-text hover:bg-indigo-50/50 focus:bg-indigo-100 border border-transparent focus:border-indigo-400 transition';
                     }
+                    
+                    // NOVO: Aplica a classe inicial de expansão na 2ª coluna (Descrição do Produto)
+                    if (isStatusEditable && i === 1) { // 2ª coluna (índice 1) da Conferência
+                         // Começa no modo expandido
+                         cellClasses += ' expand-mode-cell'; 
+                    }
+
 
                     html += `<td ${editAttributes} class="${cellClasses}">${cellValue}</td>`;
                 }
@@ -454,6 +491,12 @@
                     setTimeout(() => {
                         applyConferenciaStyles(headers.length);
                     }, 0);
+                    
+                    // Adiciona a classe inicial de expansão nos cabeçalhos (Modo Expandido)
+                    const headerCell = document.querySelector('#conferencia-table th:nth-child(2)');
+                    if (headerCell) {
+                         headerCell.classList.add('expand-mode-cell');
+                    }
                 }
                 
             } else if (sheetName !== "NOTA FISCAL" && sheetName !== "CONTAGEM LOJA") {
@@ -468,6 +511,11 @@
                     setTimeout(() => {
                         applyConferenciaStyles(headers.length);
                     }, 0);
+                    // Adiciona a classe inicial de expansão nos cabeçalhos (Modo Expandido)
+                    const headerCell = document.querySelector('#conferencia-table th:nth-child(2)');
+                    if (headerCell) {
+                         headerCell.classList.add('expand-mode-cell');
+                    }
                 }
             }
         }
@@ -502,30 +550,44 @@
                 }
             });
         }
-
+        
         /**
-         * Alterna entre o modo de rolagem vertical e o modo expandido para a tabela de Conferência.
-         * NOVO: Implementação do toggle usando classList.toggle().
+         * Alterna entre o Modo Scroll (células truncadas com scroll horizontal interno) 
+         * e o Modo Expandido (colunas se ajustam ao conteúdo mais longo).
          */
         function toggleScrollMode() {
-            // Usa o ID adicionado na função renderTable
-            const tableWrapper = document.getElementById('conferencia-table-wrapper'); 
+            const table = document.getElementById('conferencia-table');
             const button = document.getElementById('scroll-button');
+
+            if (!table || !button) return;
             
-            // Classes Tailwind para limitar a altura e permitir o scroll vertical
-            const scrollClasses = ['max-h-[60vh]', 'overflow-y-scroll']; 
+            // Classes CSS que definem os dois estados
+            const scrollClasses = ['scroll-mode-cell'];
+            const expandClasses = ['expand-mode-cell'];
+            
+            // Seleciona as células da SEGUNDA coluna (Descrição do Produto)
+            const cells = table.querySelectorAll('th:nth-child(2), td:nth-child(2)');
+            
+            // Verifica o estado atual de qualquer célula (assumindo que todas estão sincronizadas)
+            const isScrollModeActive = cells.length > 0 && cells[0].classList.contains('scroll-mode-cell');
 
-            if (!tableWrapper || !button) return;
+            cells.forEach(cell => {
+                if (isScrollModeActive) {
+                    // Mudar para MODO EXPANDIDO: Remove scroll, adiciona expansão
+                    scrollClasses.forEach(cls => cell.classList.remove(cls));
+                    expandClasses.forEach(cls => cell.classList.add(cls));
+                } else {
+                    // Mudar para MODO SCROLL: Adiciona scroll, remove expansão
+                    expandClasses.forEach(cls => cell.classList.remove(cls));
+                    scrollClasses.forEach(cls => cell.classList.add(cls));
+                }
+            });
 
-            // 1. Alterna as classes que ativam o scroll
-            // Se a classe não existe, ela é adicionada; se existe, é removida.
-            scrollClasses.forEach(cls => tableWrapper.classList.toggle(cls));
-
-            // 2. Atualiza o texto do botão com base no estado atual
-            if (tableWrapper.classList.contains('max-h-[60vh]')) {
-                button.textContent = 'Modo Expandido';
-            } else {
+            // Atualiza o texto do botão
+            if (isScrollModeActive) {
                 button.textContent = 'Modo Scroll';
+            } else {
+                button.textContent = 'Modo Expandido';
             }
         }
 
