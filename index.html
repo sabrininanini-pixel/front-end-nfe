@@ -333,7 +333,7 @@
             return `
                 <div id="contagem-loja-content">
                     <div class="p-4 bg-yellow-50 border border-yellow-200 rounded-lg mb-4 print-hidden">
-                        <p class="font-semibold text-yellow-800 text-lg">Escanear abaixo teste</p>
+                        <p class="font-semibold text-yellow-800 text-lg">Escanear abaixo</p>
                     </div>
                     <div id="dynamic-table-content-contagem">
                         <p class="text-center text-gray-400 py-10">Carregando dados...</p>
@@ -538,7 +538,7 @@
                     // e cursor seja executada após a renderização e o foco padrão do navegador.
                     setTimeout(() => {
                         requestAnimationFrame(focusNextEmptyContagemCell);
-                    }, 50);
+                    }, 100); // Aumento do delay para maior estabilidade no foco
                 }
 
             } else if (sheetName === "CONFERENCIA") {
@@ -560,8 +560,10 @@
         /**
          * Encontra a primeira célula vazia (após a última preenchida) na Contagem Loja, 
          * foca nela e rola a tela.
+         * Esta função só busca células contenteditable, que começam em A2.
          */
         function focusNextEmptyContagemCell() {
+            // Seleciona todas as células editáveis (TD), ignorando o cabeçalho (TH - A1)
             const cells = document.querySelectorAll('#contagem-table td[contenteditable="true"]');
             
             // Inicia como nulo.
@@ -574,7 +576,7 @@
                 const value = cell.textContent.trim();
                 
                 if (value === '') {
-                    // Encontrou a primeira célula vazia.
+                    // Encontrou a primeira célula vazia (ou A2 se a lista estiver vazia).
                     cellToFocus = cell;
                     break; 
                 }
@@ -583,10 +585,10 @@
             // 2. Determina a célula final de foco (se houver)
             if (!cellToFocus) {
                 // Se nenhuma célula vazia foi encontrada (lista cheia ou grande), 
-                // foca na última célula renderizada (e avisa o usuário).
+                // foca na última célula preenchida.
                 if (cells.length > 0) {
                     cellToFocus = cells[cells.length - 1];
-                    showNotification("Aviso: A lista de contagem pode estar cheia (3000 linhas). Foco na última célula.", 'warning', 5000);
+                    showNotification("Aviso: A lista de contagem pode estar cheia (3000 linhas). Foco na última célula preenchida.", 'warning', 5000);
                 }
             }
             
@@ -598,7 +600,7 @@
                 cellToFocus.focus();
                 
                 // moveCursorToEnd é crucial para que o navegador não selecione o texto,
-                // o que causaria a sobrescrita pelo próximo caractere digitado.
+                // o que causaria a sobrescrita pelo próximo caractere digitado/scaneado.
                 moveCursorToEnd(cellToFocus); 
             }
         }
@@ -611,14 +613,18 @@
             const range = document.createRange();
             const selection = window.getSelection();
             
-            // Se o elemento não tiver conteúdo, ele pode não ter childNodes. 
-            // Células vazias não têm esse problema, mas as preenchidas sim.
+            // Garante que o cursor está no final do nó de texto, evitando a seleção total.
+            // Se o elemento estiver vazio (caso padrão), childNodes.length será 0 e o cursor 
+            // será posicionado em 0, o que é o início.
             if (element.childNodes.length > 0) {
-                 // Move para o final do primeiro nó de texto (que deve ser o único)
                  const node = element.childNodes[0];
-                 range.setStart(node, node.length);
+                 // Verifica se é um nó de texto (para evitar erros em outros tipos de nós)
+                 if (node.nodeType === 3) {
+                     range.setStart(node, node.length);
+                 } else {
+                     range.setStart(element, 0);
+                 }
             } else {
-                 // Se estiver vazio, foca no início do elemento
                  range.setStart(element, 0);
             }
 
@@ -736,17 +742,16 @@
                 // 1. Salva a célula atual
                 handleCellEdit(element, sheetRange, sheetName);
 
-                // 2. Calcula a próxima linha (apenas para encontrar a célula pré-existente)
+                // 2. Calcula a próxima linha 
                 const currentRow = parseInt(sheetRange.slice(1));
                 const nextRow = currentRow + 1;
                 const nextRange = `A${nextRow}`;
 
-                // 3. Tenta encontrar a próxima célula pré-renderizada
+                // 3. Tenta encontrar a próxima célula pré-renderizada (A3, A4, etc.)
                 const nextCell = document.querySelector(`td[data-sheet-range="${nextRange}"]`);
                 
                 if (nextCell) {
-                    // Se a célula existe (dentro das 3000 linhas), limpa o conteúdo e foca
-                    // Isso garante que a próxima célula já esteja limpa e pronta para o próximo scan.
+                    // Limpa o conteúdo e foca na próxima
                     nextCell.textContent = '';
                     nextCell.dataset.originalValue = '';
                     nextCell.focus();
@@ -861,7 +866,6 @@
          * Função CRUCIAL: Envia o novo valor da célula editável para o Google Sheets.
          */
         async function handleCellEdit(element, sheetRange, sheetName) {
-            // OBSERVAÇÃO: Corrigido o acesso ao data-original-value para camelCase (dataset.originalValue)
             const newValue = element.textContent.trim();
             const originalValue = element.dataset.originalValue; 
 
