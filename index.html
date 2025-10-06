@@ -42,12 +42,12 @@
         
         /* --- LARGURAS FIXAS CONFERENCIA --- */
         
-        /* NOVO: 1ª Coluna: Código de Barras (210px) */
+        /* AJUSTE: 1ª Coluna: Código de Barras (140px) */
         #conferencia-table th:nth-child(1),
         #conferencia-table td:nth-child(1) {
-             width: 210px; 
-             min-width: 210px;
-             max-width: 210px;
+             width: 140px; 
+             min-width: 140px;
+             max-width: 140px;
              overflow: hidden; 
              text-overflow: ellipsis;
              white-space: nowrap;
@@ -87,12 +87,12 @@
              text-align: center; /* Centraliza o número */
         }
 
-        /* 3ª Coluna: Código de Barras (210px) */
+        /* AJUSTE: 3ª Coluna: Código de Barras (140px) */
         #notafiscal-table th:nth-child(3),
         #notafiscal-table td:nth-child(3) {
-            width: 210px; 
-            min-width: 210px;
-            max-width: 210px;
+            width: 140px; 
+            min-width: 140px;
+            max-width: 140px;
             overflow: hidden; 
             text-overflow: ellipsis;
             white-space: nowrap;
@@ -138,11 +138,11 @@
             text-align: left !important;
         }
         
-        /* Classe para Código de Barras (210px) */
+        /* AJUSTE: Classe para Código de Barras (140px) */
         .scroll-mode-cell-code {
-            width: 210px !important; 
-            min-width: 210px !important;
-            max-width: 210px !important;
+            width: 140px !important; 
+            min-width: 140px !important;
+            max-width: 140px !important;
             overflow-x: auto !important; /* CORRIGIDO: Só mostra scroll se necessário */
             white-space: nowrap !important;
             text-overflow: clip !important;
@@ -442,18 +442,19 @@
                     // Lógica de Edição:
                     // 1. CONTAGEM LOJA: APENAS A COLUNA 'A' (Índice 0) é editável
                     // 2. CONFERENCIA: APENAS A COLUNA 'OBS' (Índice 5) é editável
-                    // Note: headers[5] é "Status" (no arquivo anterior eu chamei de OBS, mantendo a lógica de i=5)
                     const isCellEditable = (isEditable && i === 0) || (isStatusEditable && i === 5);
 
                     if (isCellEditable) {
                         editAttributes = `contenteditable="true"
-                                         onblur="handleCellEdit(this, '${sheetRange}', '${sheetName}')"
                                          data-original-value="${cellValue}"
                                          data-sheet-range="${sheetRange}"`;
 
-                        // Adiciona o keypress apenas para a Contagem Loja (fluxo de escanear)
-                        if (sheetName === "CONTAGEM LOJA") {
+                        if (sheetName === "CONTAGEM LOJA" && i === 0) {
+                            // AJUSTE: Remove onblur para Contagem Loja e confia apenas no Enter para salvar/mover
                             editAttributes += `onkeydown="handleContagemKeyPress(event, '${sheetRange}', '${sheetName}')"`;
+                        } else {
+                            // Mantém onblur para a coluna OBS da CONFERENCIA
+                            editAttributes += `onblur="handleCellEdit(this, '${sheetRange}', '${sheetName}')"`;
                         }
                         
                         cellClasses = 'cursor-text hover:bg-indigo-50/50 focus:bg-indigo-100 border border-transparent focus:border-indigo-400 transition';
@@ -526,8 +527,8 @@
             const sheetCol = 'A'; // Primeira coluna
             const sheetRange = `${sheetCol}${sheetRowIndex}`;
             
+            // AJUSTE: onblur removido aqui também
             const editAttributes = `contenteditable="true"
-                                    onblur="handleCellEdit(this, '${sheetRange}', '${sheetName}')"
                                     onkeydown="handleContagemKeyPress(event, '${sheetRange}', '${sheetName}')"
                                     data-original-value=""
                                     data-sheet-range="${sheetRange}"`;
@@ -669,7 +670,7 @@
                         cell.classList.remove('expand-mode-cell');
 
                         if (sheetName === 'CONFERENCIA') {
-                            // Coluna 1 (Código de Barras) é 210px
+                            // Coluna 1 (Código de Barras) é 140px (AJUSTE)
                             if (colIndex === 1) {
                                 cell.classList.add(scrollClassCode); 
                             } 
@@ -687,7 +688,7 @@
                             // Coluna 2 (Quantidade) e 4 (Item) são 70px
                             if (colIndex === 2 || colIndex === 4) {
                                 cell.classList.add(scrollClassNumeric);
-                            // Coluna 3 (Código de Barras) é 210px
+                            // Coluna 3 (Código de Barras) é 140px (AJUSTE)
                             } else if (colIndex === 3) {
                                 cell.classList.add(scrollClassCode); 
                             } else { // Coluna 1 (Descrição)
@@ -710,30 +711,33 @@
         // --- Funções de API e Utilitários (demais funções inalteradas) ---
 
         /**
-         * Lida com a tecla pressionada na célula da Contagem Loja.
+         * Lida com a tecla pressionada na célula da Contagem Loja (Enter).
          */
         function handleContagemKeyPress(event, sheetRange, sheetName) {
             if (event.keyCode === 13) {
                 event.preventDefault();
                 
                 const element = event.target;
+                // 1. Salva a edição na célula atual
                 handleCellEdit(element, sheetRange, sheetName);
 
                 const currentRow = parseInt(sheetRange.slice(1));
                 const nextRow = currentRow + 1;
                 const nextRange = `A${nextRow}`;
 
-                const nextCell = document.querySelector(`td[data-sheet-range="${nextRange}"]`);
+                let nextCell = document.querySelector(`td[data-sheet-range="${nextRange}"]`);
                 
+                // 2. Tenta pular para a próxima célula/linha
                 if (nextCell) {
+                    // A célula A(N+1) existe. Limpa e foca.
                     nextCell.textContent = ''; // Limpa para a próxima contagem
                     nextCell.dataset.originalValue = ''; // Força o save
                     nextCell.focus();
                 } else {
-                    // Se não encontrou a célula, é o momento de criar uma nova linha no DOM.
+                    // A célula A(N+1) não existe. Precisa criar nova linha.
                     const tableBody = document.querySelector('#contagem-table tbody');
                     if (tableBody) {
-                        // Remove qualquer linha de "placeholder" que possa ter sido renderizada antes
+                        // Remove qualquer linha de "placeholder" que possa ter sido renderizada antes (redundância de segurança)
                         const placeholderRows = tableBody.querySelectorAll('tr[data-placeholder="true"]');
                         placeholderRows.forEach(row => row.remove());
                         
@@ -742,7 +746,7 @@
                         const newRowHtml = renderEditableRow(sheetName, headers, nextRow);
                         tableBody.insertAdjacentHTML('beforeend', newRowHtml);
                         
-                        // Foca na nova célula
+                        // Foca na nova célula (que já está vazia)
                         const newCell = document.querySelector(`td[data-sheet-range="${nextRange}"]`);
                         if (newCell) {
                             newCell.focus();
@@ -864,6 +868,7 @@
 
         /**
          * Lida com a edição de uma célula e envia a atualização para o backend Go.
+         * (Chamada por onblur na Conferência ou por Enter na Contagem Loja)
          */
         async function handleCellEdit(element, sheetRange, sheetName) {
             const newValue = element.textContent.trim();
