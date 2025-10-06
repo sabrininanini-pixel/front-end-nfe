@@ -6,110 +6,13 @@
     <title>Conferir Nota Fiscal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        
-        /* --- ESTILO BASE: SCROLL MODE (Com scroll, texto não quebra) --- */
-        .mock-table {
-            width: max-content !important; 
-        }
-
         .mock-table th, .mock-table td {
             padding: 12px;
             text-align: left;
             border-bottom: 1px solid #e5e7eb; 
             border-right: 1px solid #e5e7eb; 
-            
-            white-space: nowrap; /* Força o conteúdo a ficar em uma linha */
-            text-overflow: clip; 
-            overflow: visible; 
         }
         
-        /* ---------------------------------------------------------------- */
-        /* --- ESTILOS DE LARGURA FIXA PARA MODO SCROLL (Larguras Solicitadas) --- */
-        /* ---------------------------------------------------------------- */
-
-        /* 1. NOTA FISCAL (4 Colunas) */
-        
-        /* Coluna 1: Descrição (Maior - 250px) */
-        #dynamic-table-content .mock-table th:nth-child(1),
-        #dynamic-table-content .mock-table td:nth-child(1) {
-            min-width: 250px; 
-        }
-
-        /* Coluna 2: Quantidade (70px) */
-        #dynamic-table-content .mock-table th:nth-child(2),
-        #dynamic-table-content .mock-table td:nth-child(2) {
-            min-width: 70px;
-            text-align: center;
-        }
-
-        /* Coluna 3: Código de Barras (140px) */
-        #dynamic-table-content .mock-table th:nth-child(3),
-        #dynamic-table-content .mock-table td:nth-child(3) {
-            min-width: 140px;
-        }
-
-        /* Coluna 4: Item (70px) */
-        #dynamic-table-content .mock-table th:nth-child(4),
-        #dynamic-table-content .mock-table td:nth-child(4) {
-            min-width: 70px;
-            text-align: center;
-        }
-
-        /* 2. CONFERENCIA (6 Colunas) */
-        
-        /* Coluna 1: Código de Barras (140px) */
-        #conferencia-content .mock-table th:nth-child(1),
-        #conferencia-content .mock-table td:nth-child(1) {
-            min-width: 140px;
-        }
-
-        /* Coluna 2: Descrição (Maior - 250px) */
-        #conferencia-content .mock-table th:nth-child(2),
-        #conferencia-content .mock-table td:nth-child(2) {
-            min-width: 250px;
-        }
-
-        /* Coluna 3: Quantidade NF (100px) */
-        #conferencia-content .mock-table th:nth-child(3),
-        #conferencia-content .mock-table td:nth-child(3) {
-            min-width: 100px;
-            text-align: center;
-        }
-
-        /* Coluna 4: Contagem Loja (100px) */
-        #conferencia-content .mock-table th:nth-child(4),
-        #conferencia-content .mock-table td:nth-child(4) {
-            min-width: 100px;
-            text-align: center;
-        }
-
-        /* Coluna 5: Diferença (70px) */
-        #conferencia-content .mock-table th:nth-child(5),
-        #conferencia-content .mock-table td:nth-child(5) {
-            min-width: 70px;
-            text-align: center;
-        }
-
-        /* Coluna 6: Status/OBS (100px) */
-        #conferencia-content .mock-table th:nth-child(6),
-        #conferencia-content .mock-table td:nth-child(6) {
-            min-width: 100px;
-        }
-
-        /* --- ESTILO PARA MODO EXPANDIDO (Sem scroll, texto quebra) --- */
-        .mock-table.expand-mode {
-            width: 100% !important; 
-            table-layout: auto; 
-        }
-        
-        .mock-table.expand-mode th, 
-        .mock-table.expand-mode td {
-            white-space: normal !important; 
-            word-break: break-word; 
-            /* REVERTE as larguras fixas quando está no modo expandido */
-            min-width: auto !important; 
-        }
-
         /* Regra para remover a linha vertical da última coluna */
         .mock-table th:last-child, .mock-table td:last-child {
             border-right: none;
@@ -129,72 +32,133 @@
         /* --- Estilos de Edição/Conferência --- */
         /* ---------------------------------------------------------------- */
         
-        /* Estilos base para a coluna Diferença (E - 5ª coluna visível) */
+        /* Estilos base para a coluna Diferença (5ª coluna visível) */
         #conferencia-content tr td:nth-child(5) { 
             font-weight: bold;
-            text-align: center;
+            text-align: center; 
         }
 
-
-        /* --- CORES PARA O FUNDO DA CÉLULA DIFERENÇA (Ajustado com alta especificidade) --- */
-        /* Vermelho (Negativo) */
-        #conferencia-content tr td:nth-child(5).bg-fee2e2 { 
-            background-color: #fee2e2 !important; 
-        }
-        #conferencia-content tr td:nth-child(5).text-b91c1c { 
-            color: #b91c1c !important; 
-        }
-        /* Verde (Positivo) */
-        #conferencia-content tr td:nth-child(5).bg-green-100 { 
-            background-color: #d1fae5 !important; 
-        } 
-        #conferencia-content tr td:nth-child(5).text-green-700 { 
-            color: #047857 !important; 
-        } 
-        /* --------------------------------------------------------------------------------- */
-
-
-        /* Estilo para células editáveis (Contagem Loja / Status) */
-        [contenteditable="true"]:focus {
-            outline: none;
-            box-shadow: 0 0 0 2px #c7d2fe;
+        /* ---------------------------------------------------------------- */
+        /* --- LARGURAS FIXAS GERAIS (DEFAULT TRUNCADO) --- */
+        /* --- Esta regra é "desligada" pela classe .expand-mode-cell --- */
+        /* ---------------------------------------------------------------- */
+        
+        /* Coluna 1 (Código de Barras - 210px) da Conferência */
+        #conferencia-table th:nth-child(1),
+        #conferencia-table td:nth-child(1) {
+             width: 210px; 
+             min-width: 210px;
+             max-width: 210px;
+             overflow: hidden; 
+             text-overflow: ellipsis;
+             white-space: nowrap;
         }
         
+        /* Colunas numéricas/estreitas (70px) da Conferência */
+        #conferencia-table th:nth-child(3), 
+        #conferencia-table td:nth-child(3),
+        #conferencia-table th:nth-child(4), 
+        #conferencia-table td:nth-child(4),
+        #conferencia-table th:nth-child(5), 
+        #conferencia-table td:nth-child(5),
+        #conferencia-table th:nth-child(6), 
+        #conferencia-table td:nth-child(6) {
+             width: 70px; 
+             min-width: 70px;
+             max-width: 70px;
+             overflow: hidden; 
+             text-overflow: ellipsis;
+             white-space: nowrap;
+        }
+        
+        /* Colunas numéricas/estreitas (70px) da Nota Fiscal */
+        #notafiscal-table th:nth-child(2),
+        #notafiscal-table td:nth-child(2),
+        #notafiscal-table th:nth-child(4),
+        #notafiscal-table td:nth-child(4) {
+             width: 70px; 
+             min-width: 70px;
+             max-width: 70px;
+             overflow: hidden; 
+             text-overflow: ellipsis;
+             white-space: nowrap;
+             text-align: center; 
+        }
+
+        /* Coluna Código de Barras (210px) da Nota Fiscal */
+        #notafiscal-table th:nth-child(3),
+        #notafiscal-table td:nth-child(3) {
+            width: 210px; 
+            min-width: 210px;
+            max-width: 210px;
+            overflow: hidden; 
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            text-align: left;
+        }
+
+        /* Centraliza os valores numéricos da CONFERENCIA */
+        #conferencia-table td:nth-child(3), 
+        #conferencia-table td:nth-child(4),
+        #conferencia-table td:nth-child(5) {
+             text-align: center; 
+        }
+
         /* ---------------------------------------------------------------- */
-        /* --- PADDING RESPONSIVO (Apenas para celular < 768px) --- */
+        /* --- ESTILOS DE MODO (TOGGLE POR JS) --- */
         /* ---------------------------------------------------------------- */
-        @media (max-width: 767px) {
-            
-            /* Ajustes visuais para mobile */
-            .container {
-                padding: 0 !important;
-                max-width: 100% !important;
-            }
-            
-            .container .bg-white {
-                border-radius: 0;
-                border-left: none;
-                border-right: none;
-                padding: 1.5rem 0 !important; 
-            }
-            
-            header, nav, .flex.flex-wrap, #content-stack {
-                padding-left: 1rem;
-                padding-right: 1rem;
-            }
-            
-            nav {
-                border-bottom: 1px solid #e5e7eb; 
-                margin: 0 1rem; 
-            }
-            
-            .overflow-x-auto {
-                border-radius: 0 !important;
-                box-shadow: none !important;
-                border: none !important;
-                padding-left: 0; 
-                padding-right: 0;
-            }
+
+        /* Estilo base para MODO EXPANDIDO (Permite que a célula se ajuste ao conteúdo) */
+        .expand-mode-cell {
+            max-width: none !important;
+            min-width: 0 !important;
+            overflow-x: visible !important;
+            white-space: normal !important;
+        }
+
+        /* Classe para MODO SCROLL (COLUNAS DE DESCRIÇÃO E TEXTO LONGO - 150px) */
+        .scroll-mode-cell {
+            max-width: 150px !important; 
+            min-width: 150px !important;
+            overflow-x: auto !important; 
+            white-space: nowrap !important; 
+            text-overflow: clip !important;
+        }
+        
+        /* Classe para MODO SCROLL (COLUNAS NUMÉRICAS OU ESTREITAS - 70px) */
+        .scroll-mode-cell-numeric {
+            width: 70px !important; 
+            min-width: 70px !important;
+            max-width: 70px !important;
+            overflow-x: auto !important; 
+            white-space: nowrap !important;
+            text-overflow: clip !important;
+            text-align: left !important;
+        }
+        
+        /* Classe para Código de Barras (210px) */
+        .scroll-mode-cell-code {
+            width: 210px !important; 
+            min-width: 210px !important;
+            max-width: 210px !important;
+            overflow-x: auto !important; 
+            white-space: nowrap !important;
+            text-overflow: clip !important;
+            text-align: left !important;
+        }
+
+
+        /* Classes usadas pelo JavaScript para aplicar as cores */
+        .bg-fee2e2 { background-color: #fee2e2; } /* Vermelho suave (red-100) */
+        .text-b91c1c { color: #b91c1c; } /* Vermelho escuro (red-700) */
+        .bg-green-100 { background-color: #d1fae5; } /* Verde suave */
+        .text-green-700 { color: #047857; } /* Verde escuro */
+
+
+        /* Estilo para células editáveis (Contagem Loja / OBS) */
+        [contenteditable="true"]:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px #c7d2fe; 
         }
         
         /* ---------------------------------------------------------------- */
@@ -208,7 +172,6 @@
                 min-height: 297mm;
             }
 
-            /* Esconde elementos não essenciais para a impressão */
             .container, .bg-white, .shadow-lg {
                 box-shadow: none !important;
                 margin: 0 !important;
@@ -221,40 +184,37 @@
                 display: none !important;
             }
 
-            /* Garante que a tabela use 100% da largura do A4 */
             .mock-table {
-                width: 100% !important;
+                width: 100%;
                 font-size: 10pt;
             }
             .mock-table th, .mock-table td {
                 padding: 4px; 
                 border-bottom: 1px solid #ccc;
                 border-right: 1px solid #ccc;
-                /* Permite a quebra de linha na impressão */
-                white-space: normal !important; 
-            }
-            /* Remove min-width para que caiba no papel */
-            .mock-table th, .mock-table td {
-                 min-width: auto !important;
-            }
-            .mock-table th:last-child, .mock-table td:last-child {
-                border-right: none;
             }
             
+            /* Força todas as colunas a expandir na impressão */
+            .scroll-mode-cell, .scroll-mode-cell-numeric, .expand-mode-cell, .scroll-mode-cell-code {
+                max-width: none !important;
+                min-width: 0 !important;
+                overflow-x: visible !important;
+                white-space: normal !important;
+            }
         }
 
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
 
-    <div class="container mx-auto p-4 md:p-8">
+    <div class="container mx-auto px-0 py-4 md:p-8">
         <header class="mb-6 print-hidden">
-            <h1 class="text-3xl font-extrabold text-gray-900">
+            <h1 class="text-3xl font-extrabold text-gray-900 md:px-0 px-4">
                 Conferir Nota Fiscal
             </h1>
         </header>
 
-        <div class="bg-white rounded-xl shadow-lg border border-gray-100 p-6">
+        <div class="bg-white rounded-xl shadow-lg border border-gray-100 px-0 pt-6 pb-6 md:p-6">
 
             <nav class="flex border-b border-gray-200 print-hidden">
                 <button data-tab="NOTA FISCAL" class="tab-button px-4 py-3 text-sm font-medium border-b-2 border-indigo-600 text-indigo-600 transition-colors duration-150">NOTA FISCAL</button>
@@ -287,18 +247,9 @@
         const BACKEND_URL = "https://back-end-nfe.onrender.com";
         const USER_ID = "web-user-123";
         
-        // --- Gerenciamento de Abas e Modo de Visualização ---
+        // --- Gerenciamento de Abas ---
         const tabButtons = document.querySelectorAll('.tab-button');
         const contentStack = document.getElementById('content-stack');
-        let currentTab = 'NOTA FISCAL'; 
-        
-        // Estado do Modo: True = Scroll Mode (Padrão), False = Expand Mode
-        let scrollModeActive = true; 
-        
-        // Ícones de Modo de Visualização
-        const scrollModeIcon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>`;
-        const expandModeIcon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-5v4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 0h-4m4 0l-5-5" /></svg>`;
-
 
         tabButtons.forEach(button => {
             button.addEventListener('click', () => switchTab(button.dataset.tab));
@@ -306,10 +257,9 @@
 
         /**
          * Altera a aba ativa e carrega o conteúdo.
+         * @param {string} sheetName O nome da aba (que é também o nome da planilha no Sheets).
          */
         function switchTab(sheetName) {
-            currentTab = sheetName; 
-            
             // 1. Atualiza o estilo dos botões
             tabButtons.forEach(btn => {
                 if (btn.dataset.tab === sheetName) {
@@ -337,6 +287,7 @@
             loadTabContent(sheetName);
         }
 
+        // ÍCONES
         const documentIcon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>`;
         const printerIcon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m-1-5a1 1 0 100-2 1 1 0 000 2zm10 0a1 1 0 100-2 1 1 0 000 2zm-4 4h4v2a2 2 0 01-2 2h-4a2 2 0 01-2-2v-2h4z" /></svg>`;
 
@@ -345,9 +296,6 @@
          * Retorna o HTML completo da aba NOTA FISCAL (botões + placeholder da tabela).
          */
         function renderNotaFiscalLayout() {
-            const modeText = scrollModeActive ? "Modo Expandido" : "Modo Scroll";
-            const modeIcon = scrollModeActive ? expandModeIcon : scrollModeIcon;
-            
             return `
                 <div class="flex flex-wrap gap-3 pb-4 mb-4 border-b border-gray-200 print-hidden">
                     <label for="xml-file-upload" class="flex items-center space-x-2 px-4 py-2 bg-gray-100 text-gray-800 rounded-lg shadow-sm hover:bg-gray-200 transition duration-150 cursor-pointer text-sm font-medium border border-gray-300">
@@ -361,15 +309,10 @@
                         <span>Importar por Chave de Acesso</span>
                     </button>
                     
-                    <button id="toggle-scroll-btn-nf" onclick="toggleTableMode()" class="flex items-center space-x-2 px-4 py-2 bg-indigo-100 text-indigo-700 rounded-lg shadow-sm hover:bg-indigo-200 transition duration-150 text-sm font-medium border border-indigo-300">
-                        <span id="nf-toggle-icon-container">
-                            ${modeIcon}
-                        </span>
-                        <span id="nf-toggle-text-container">
-                            ${modeText}
-                        </span>
+                    <button onclick="toggleScrollMode('NOTA FISCAL')" id="scroll-button-notafiscal" class="flex items-center space-x-2 px-4 py-2 bg-indigo-100 text-indigo-700 rounded-lg shadow-sm hover:bg-indigo-200 transition duration-150 text-sm font-medium border border-indigo-300">
+                        <span>Modo Scroll</span>
                     </button>
-                    
+
                     <button onclick="confirmClearAllSheets()" class="flex items-center space-x-2 px-4 py-2 bg-red-50 text-red-700 rounded-lg shadow-sm hover:bg-red-100 transition duration-150 text-sm font-medium border border-red-200">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-2 0v6a1 1 0 102 0V7z" clip-rule="evenodd" /></svg>
                         <span>Apagar Dados</span>
@@ -398,30 +341,19 @@
         }
         
         /**
-         * Retorna o HTML completo da aba CONFERENCIA (com botão de impressão e toggle).
+         * Retorna o HTML completo da aba CONFERENCIA (com botão de impressão e modo scroll).
          */
         function renderConferenciaLayout() {
-            const modeText = scrollModeActive ? "Modo Expandido" : "Modo Scroll";
-            const modeIcon = scrollModeActive ? expandModeIcon : scrollModeIcon;
-            
             return `
                 <div id="conferencia-content">
                     <div class="flex flex-wrap gap-3 pb-4 mb-4 border-b border-gray-200 print-hidden">
-                        
                         <button onclick="printConferencia()" class="flex items-center space-x-2 px-4 py-2 bg-blue-100 text-blue-700 rounded-lg shadow-sm hover:bg-blue-200 transition duration-150 text-sm font-medium border border-blue-300">
                             <span class="text-blue-600">${printerIcon}</span>
                             <span>Imprimir Conferência</span>
                         </button>
-
-                        <button id="toggle-scroll-btn-conf" onclick="toggleTableMode()" class="flex items-center space-x-2 px-4 py-2 bg-indigo-100 text-indigo-700 rounded-lg shadow-sm hover:bg-indigo-200 transition duration-150 text-sm font-medium border border-indigo-300">
-                            <span id="conf-toggle-icon-container">
-                                ${modeIcon}
-                            </span>
-                            <span id="conf-toggle-text-container">
-                                ${modeText}
-                            </span>
+                        <button onclick="toggleScrollMode('CONFERENCIA')" id="scroll-button-conferencia" class="flex items-center space-x-2 px-4 py-2 bg-indigo-100 text-indigo-700 rounded-lg shadow-sm hover:bg-indigo-200 transition duration-150 text-sm font-medium border border-indigo-300">
+                            <span>Modo Scroll</span>
                         </button>
-
                     </div>
                     <div id="dynamic-table-content-conferencia">
                         <p class="text-center text-gray-400 py-10">Carregando dados...</p>
@@ -449,11 +381,20 @@
                 return `<p class="text-center text-gray-500 py-10">Nenhum dado encontrado no Google Sheets para esta aba.</p>`;
             }
 
-            const isStatusEditable = sheetName === "CONFERENCIA";
+            const isConferencia = sheetName === "CONFERENCIA";
+            const isStatusEditable = isConferencia;
             
+            // Adiciona ID à tabela para ser alvo do toggleScrollMode
+            let tableID = '';
+            if (sheetName === 'CONFERENCIA') {
+                tableID = 'conferencia-table';
+            } else if (sheetName === 'NOTA FISCAL') {
+                tableID = 'notafiscal-table';
+            }
+
             let html = `
                 <div class="rounded-lg border border-gray-200 overflow-x-auto shadow-sm">
-                    <table class="mock-table text-sm" id="${isEditable ? 'contagem-table' : (isStatusEditable ? 'conferencia-table' : '')}">
+                    <table class="mock-table w-full text-sm" id="${tableID}">
                         <thead class="bg-gray-50 sticky top-0">
                             <tr>`;
             
@@ -472,7 +413,7 @@
 
             dataRows.forEach((row, rowIndex) => {
                 const isRowEmpty = row.length === 0 || row.every(cell => !cell || String(cell).trim() === '');
-                if (isRowEmpty) return;
+                if (isRowEmpty) return; 
 
                 const sheetRowIndex = (data[0][0] === headers[0] ? rowIndex + 2 : rowIndex + 1);
                 lastRowIndexInSheet = sheetRowIndex;
@@ -502,6 +443,21 @@
                         
                         cellClasses = 'cursor-text hover:bg-indigo-50/50 focus:bg-indigo-100 border border-transparent focus:border-indigo-400 transition';
                     }
+                    
+                    // Lógica para aplicar a classe inicial de EXPANSÃO (Expand Mode)
+                    let columnsToExpand = [];
+                    if (isConferencia) {
+                         // Colunas: 1 (Código), 2 (Descrição), 3 (Qtd NF), 4 (Contagem), 5 (Diferença), 6 (OBS)
+                         columnsToExpand = [1, 2, 3, 4, 5, 6]; 
+                    } else if (sheetName === "NOTA FISCAL") {
+                         // Colunas: 1 (Descrição), 2 (Quantidade), 3 (Código), 4 (Item)
+                         columnsToExpand = [1, 2, 3, 4]; 
+                    }
+                    
+                    if (columnsToExpand.includes(i + 1)) { 
+                         cellClasses += ' expand-mode-cell'; 
+                    }
+
 
                     html += `<td ${editAttributes} class="${cellClasses}">${cellValue}</td>`;
                 }
@@ -514,7 +470,6 @@
                 if (lastRowIndexInSheet !== 0) {
                     html += renderEditableRow(sheetName, headers, nextRowIndex);
                 } else {
-                    // Se estiver vazio, renderiza a linha inicial A2
                     html += renderEditableRow(sheetName, headers, 2);
                 }
             }
@@ -527,13 +482,13 @@
          * Renderiza a linha editável vazia para começar a contagem.
          */
         function renderEmptyContagemTable(sheetName, headers) {
-             const startRowIndex = 2;
+             const startRowIndex = 2; 
 
              const firstEditableRow = renderEditableRow(sheetName, headers, startRowIndex);
              
              return `
                  <div class="rounded-lg border border-gray-200 overflow-x-auto shadow-sm">
-                    <table class="mock-table text-sm" id="contagem-table">
+                    <table class="mock-table w-full text-sm" id="contagem-table">
                         <thead class="bg-gray-50 sticky top-0">
                             <tr><th>${headers[0]}</th></tr>
                         </thead>
@@ -551,7 +506,7 @@
         function renderEditableRow(sheetName, headers, sheetRowIndex) {
             let html = `<tr data-row-index="${sheetRowIndex}">`;
             
-            const sheetCol = 'A';
+            const sheetCol = 'A'; 
             const sheetRange = `${sheetCol}${sheetRowIndex}`;
             
             const editAttributes = `contenteditable="true"
@@ -585,12 +540,14 @@
 
             if (sheetName === "NOTA FISCAL") {
                 headers = ["Descrição", "Quantidade", "Código de Barras", "Item"];
+
             } else if (sheetName === "CONTAGEM LOJA") {
                 headers = ["Código de Barras"]; 
                 targetElementId = 'dynamic-table-content-contagem';
                 isEditable = true;
+
             } else if (sheetName === "CONFERENCIA") {
-                headers = ["Código de Barras", "Descrição do Produto", "Quantidade NF", "Contagem Loja", "Diferença", "Status"];
+                headers = ["Código de Barras", "Descrição do Produto", "Quantidade NF", "Contagem Loja", "Diferença", "OBS"]; 
                 targetElementId = 'dynamic-table-content-conferencia';
             }
 
@@ -598,91 +555,96 @@
             if (targetElement) {
                 targetElement.innerHTML = renderTable(sheetName, data, headers, isEditable);
                 
-                // --- Aplica o modo de visualização correto após a renderização ---
-                if (sheetName === "NOTA FISCAL" || sheetName === "CONFERENCIA") {
-                     setTimeout(updateTableModeDisplay, 0); 
-                }
-                
-                // --- Aplica estilos condicionais após a renderização ---
+                // Aplica estilos condicionais após a renderização
                 if (sheetName === "CONFERENCIA") {
                     setTimeout(() => {
                         applyConferenciaStyles(headers.length);
                     }, 0);
                 }
-                
-            } else if (sheetName !== "NOTA FISCAL" && sheetName !== "CONTAGEM LOJA") {
-                contentStack.innerHTML = `
-                    <div id="${sheetName.toLowerCase()}-content">
-                        ${renderTable(sheetName, data, headers, isEditable)}
-                    </div>
-                `;
-                if (sheetName === "CONFERENCIA") {
-                     setTimeout(updateTableModeDisplay, 0); 
-                    setTimeout(() => {
-                        applyConferenciaStyles(headers.length);
-                    }, 0);
-                }
-            }
+            } 
         }
-
+        
         /**
-         * Alterna entre o modo Scroll Horizontal e o modo Expandido.
+         * Alterna entre o Modo Scroll e o Modo Expandido para a tabela especificada.
          */
-        function toggleTableMode() {
-            scrollModeActive = !scrollModeActive;
-            updateTableModeDisplay();
-        }
+        function toggleScrollMode(sheetName) {
+            const tableID = sheetName === 'CONFERENCIA' ? 'conferencia-table' : 'notafiscal-table';
+            const buttonID = sheetName === 'CONFERENCIA' ? 'scroll-button-conferencia' : 'scroll-button-notafiscal';
 
-        /**
-         * Aplica as classes CSS e atualiza o botão de acordo com o estado atual (scrollModeActive).
-         */
-        function updateTableModeDisplay() {
-            let tableSelector = '';
-            let toggleIconId = '';
-            let toggleTextId = '';
+            const table = document.getElementById(tableID);
+            const button = document.getElementById(buttonID);
 
-            // 1. Determina os IDs corretos para a aba ativa
-            if (currentTab === "NOTA FISCAL") {
-                tableSelector = '#dynamic-table-content .mock-table';
-                toggleIconId = 'nf-toggle-icon-container';
-                toggleTextId = 'nf-toggle-text-container';
-            } else if (currentTab === "CONFERENCIA") {
-                tableSelector = '#dynamic-table-content-conferencia .mock-table';
-                toggleIconId = 'conf-toggle-icon-container';
-                toggleTextId = 'conf-toggle-text-container';
-            } else {
-                return; 
+            if (!table || !button) return;
+            
+            // O Modo Expandido é o estado ativo se o texto do botão for 'Modo Expandido'
+            const isScrollModeActive = button.textContent === 'Modo Expandido';
+            
+            let columnsToTarget = [];
+            const scrollClassDesc = 'scroll-mode-cell';
+            const scrollClassNumeric = 'scroll-mode-cell-numeric';
+            const scrollClassCode = 'scroll-mode-cell-code'; 
+
+            if (sheetName === 'CONFERENCIA') {
+                // Colunas Alvo (Índices): 1 (Código), 2 (Descrição), 3 (Qtd NF), 4 (Contagem), 5 (Diferença), 6 (OBS)
+                columnsToTarget = [1, 2, 3, 4, 5, 6];
+            } else if (sheetName === 'NOTA FISCAL') {
+                // Colunas Alvo (Índices): 1 (Descrição), 2 (Quantidade), 3 (Código), 4 (Item)
+                columnsToTarget = [1, 2, 3, 4];
             }
 
-            const table = document.querySelector(tableSelector);
-            const toggleIconContainer = document.getElementById(toggleIconId);
-            const toggleTextContainer = document.getElementById(toggleTextId);
-            
-            if (!table || !toggleIconContainer || !toggleTextContainer) {
-                return;
-            }
-            
-            const scrollContainer = table.parentElement; 
-            
-            if (scrollModeActive) {
-                // Modo SCROLL (Pronto para rolar)
-                table.classList.remove('expand-mode');
-                scrollContainer.classList.remove('overflow-x-hidden'); 
-                scrollContainer.classList.add('overflow-x-auto');
-
-                // Atualiza o botão para indicar a próxima ação (Expandir)
-                toggleIconContainer.innerHTML = expandModeIcon; 
-                toggleTextContainer.textContent = "Modo Expandido";
+            columnsToTarget.forEach(colIndex => {
+                // Seleciona o cabeçalho (th) e todas as células (td) da coluna
+                const cells = table.querySelectorAll(`th:nth-child(${colIndex}), td:nth-child(${colIndex})`);
                 
-            } else {
-                // Modo EXPANDIDO (Ocupa 100%, quebra texto)
-                table.classList.add('expand-mode');
-                scrollContainer.classList.remove('overflow-x-auto'); 
-                scrollContainer.classList.add('overflow-x-hidden'); 
+                cells.forEach(cell => {
+                    
+                    if (isScrollModeActive) {
+                        // Mudar para MODO EXPANDIDO (Remove todas as classes de scroll)
+                        cell.classList.remove(scrollClassDesc, scrollClassNumeric, scrollClassCode);
+                        cell.classList.add('expand-mode-cell'); 
+                    } else {
+                        // Mudar para MODO SCROLL
+                        cell.classList.remove('expand-mode-cell');
 
-                // Atualiza o botão para indicar a próxima ação (Rolar)
-                toggleIconContainer.innerHTML = scrollModeIcon; 
-                toggleTextContainer.textContent = "Modo Scroll";
+                        if (sheetName === 'CONFERENCIA') {
+                            // Coluna 1 (Código de Barras) é 210px
+                            if (colIndex === 1) {
+                                cell.classList.add(scrollClassCode); 
+                            } 
+                            // Coluna 2 (Descrição) é 150px (padrão)
+                            else if (colIndex === 2) {
+                                cell.classList.add(scrollClassDesc);
+                            }
+                            // Colunas 3, 4, 5, 6 são 70px
+                            else if (colIndex >= 3 && colIndex <= 6) {
+                                cell.classList.add(scrollClassNumeric);
+                            }
+                            
+                        } else if (sheetName === 'NOTA FISCAL') {
+                            // NOTA FISCAL: 
+                            // Coluna 2 (Quantidade) e 4 (Item) são 70px
+                            if (colIndex === 2 || colIndex === 4) {
+                                cell.classList.add(scrollClassNumeric);
+                            // Coluna 3 (Código de Barras) é 210px
+                            } else if (colIndex === 3) {
+                                cell.classList.add(scrollClassCode); 
+                            } else { // Coluna 1 (Descrição)
+                                cell.classList.add(scrollClassDesc);
+                            }
+                        }
+                    }
+                });
+            });
+
+            // Atualiza o texto do botão
+            if (isScrollModeActive) {
+                button.textContent = 'Modo Scroll';
+                button.classList.remove('bg-gray-100', 'text-gray-800', 'hover:bg-gray-200', 'border-gray-300');
+                button.classList.add('bg-indigo-100', 'text-indigo-700', 'hover:bg-indigo-200', 'border-indigo-300');
+            } else {
+                button.textContent = 'Modo Expandido';
+                button.classList.remove('bg-indigo-100', 'text-indigo-700', 'hover:bg-indigo-200', 'border-indigo-300');
+                button.classList.add('bg-gray-100', 'text-gray-800', 'hover:bg-gray-200', 'border-gray-300');
             }
         }
 
@@ -702,12 +664,9 @@
                 diffCell.classList.remove('bg-fee2e2', 'text-b91c1c', 'bg-green-100', 'text-green-700');
 
                 if (isNaN(value) || value === 0) {
-                    // Valor Zero ou Vazio (Neutro)
                 } else if (value < 0) {
-                    // Regra Vermelha (Negativo)
                     diffCell.classList.add('bg-fee2e2', 'text-b91c1c');
                 } else if (value > 0) {
-                    // Regra Verde (Positivo)
                     diffCell.classList.add('bg-green-100', 'text-green-700');
                 }
             });
