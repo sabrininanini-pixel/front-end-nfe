@@ -375,7 +375,7 @@
          * Renderiza a tabela da Contagem Loja com 3000 linhas pré-renderizadas.
          */
         function renderContagemTableFixedRows(data, headers) {
-            const fixedRows = 3000;
+            const fixedRows = 2000;
             // Assume que a primeira linha de `data` é o cabeçalho se for retornado do Sheets
             const existingData = (data.length > 0 && headers.length > 0 && String(data[0][0]) === headers[0]) 
                                  ? data.slice(1) 
