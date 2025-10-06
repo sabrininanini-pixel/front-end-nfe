@@ -902,8 +902,9 @@
                     // Reverte o valor da célula em caso de falha de salvamento
                     element.textContent = originalValue; 
                 } else {
+                    // ATENÇÃO: CORREÇÃO APLICADA AQUI (camelCase de dataset)
                     // Atualiza o valor original para o novo valor salvo
-                    element.dataset.original-value = newValue;
+                    element.dataset.originalValue = newValue;
                     showNotification(`Célula ${sheetRange} atualizada com sucesso para '${newValue}'.`, 'success', 2000);
                 }
 
