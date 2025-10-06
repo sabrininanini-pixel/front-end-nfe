@@ -34,47 +34,78 @@
         /* --- Estilos de Edição/Conferência --- */
         /* ---------------------------------------------------------------- */
         
-        /* Estilos base para a coluna Diferença (E - 5ª coluna visível) */
+        /* Estilos base para a coluna Diferença (5ª coluna visível) */
         #conferencia-content tr td:nth-child(5) { 
             font-weight: bold;
             text-align: center; /* Centraliza o número para melhor visualização */
         }
 
-        /* Define a largura da coluna Status (6ª coluna) e Quantidade NF (3ª coluna) */
+        /* Define Larguras FIXAS e estreitas para as colunas numéricas (3, 4, 5, 6 - OBS) */
+        /* No modo expandido (padrão desktop), o conteúdo (número) é truncado no TD e o cabeçalho (TH) se expande */
         #conferencia-content .mock-table th:nth-child(3), 
         #conferencia-content .mock-table td:nth-child(3),
-        #conferencia-content .mock-table th:nth-child(6), 
+        #conferencia-content .mock-table th:nth-child(4), 
+        #conferencia-content .mock-table td:nth-child(4),
+        #conferencia-content .mock-table th:nth-child(5), 
+        #conferencia-content .mock-table td:nth-child(5),
+        #conferencia-content .mock-table th:nth-child(6), /* Coluna 'OBS' */
         #conferencia-content .mock-table td:nth-child(6) {
-             width: 100px; /* Largura fixa para ambas */
-             min-width: 100px;
-             max-width: 100px;
-             overflow: hidden;
+             /* Largura mínima para 4 caracteres + padding (ex: 70px) */
+             width: 70px; 
+             min-width: 70px;
+             max-width: 70px;
+             /* Por padrão (desktop), o texto na célula (TD) é truncado se for maior que 70px */
+             overflow: hidden; 
              text-overflow: ellipsis;
              white-space: nowrap;
         }
-
-        /* ---------------------------------------------------------------- */
-        /* --- ESTILOS DO MODO SCROLL/EXPANDIDO (COLUNA DESCRIÇÃO - 2ª) --- */
-        /* ---------------------------------------------------------------- */
-
-        /* Classe para MODO SCROLL: Força a coluna a ter uma largura fixa/máxima, ativa o scroll interno e esconde o texto que extrapola */
-        .scroll-mode-cell {
-            /* Largura máxima no modo scroll para evitar que a coluna se expanda */
-            max-width: 250px; 
-            min-width: 250px; 
-            /* Permite o scroll horizontal DENTRO da célula */
-            overflow-x: scroll;
-            /* Garante que o texto fique em uma linha para o scroll funcionar */
-            white-space: nowrap;
+        
+        /* Centraliza os valores numéricos */
+        #conferencia-content .mock-table td:nth-child(3), 
+        #conferencia-content .mock-table td:nth-child(4),
+        #conferencia-content .mock-table td:nth-child(5) {
+             text-align: center; 
         }
 
-        /* Classe para MODO EXPANDIDO: Permite que o conteúdo defina a largura da coluna */
+        /* ---------------------------------------------------------------- */
+        /* --- ESTILOS DO MODO SCROLL/EXPANDIDO (MOBILE) --- */
+        /* ---------------------------------------------------------------- */
+
+        /* Estilo base para MODO EXPANDIDO (o desktop usa este comportamento por padrão) */
         .expand-mode-cell {
-            /* Remove as restrições e permite expansão */
-            max-width: none;
-            min-width: 0;
-            overflow-x: visible;
-            white-space: normal;
+            max-width: none !important;
+            min-width: 0 !important;
+            overflow-x: visible !important;
+            white-space: normal !important;
+        }
+
+        /* O MODO SCROLL SÓ SERÁ ATIVADO EM TELAS PEQUENAS (Mobile) */
+        @media (max-width: 767px) {
+            
+            /* Classe para MODO SCROLL (COLUNA DESCRIÇÃO - 2) */
+            .scroll-mode-cell-mobile {
+                max-width: 150px !important; 
+                min-width: 150px !important;
+                overflow-x: scroll !important;
+                white-space: nowrap !important;
+                text-overflow: clip !important; /* Mostra o scroll, não reticências */
+            }
+            
+            /* Classe para MODO SCROLL (COLUNAS NUMÉRICAS - 3, 4, 5, 6) */
+            .scroll-mode-cell-numeric-mobile {
+                /* Mantém a largura de 70px, mas força o scroll horizontal */
+                overflow-x: scroll !important;
+                white-space: nowrap !important;
+                text-overflow: clip !important;
+                text-align: left !important; /* Alinha o texto à esquerda para o scroll do cabeçalho */
+            }
+        }
+        
+        /* Ocultar o botão "Modo Scroll" no desktop (acima de 767px) */
+        @media (min-width: 768px) {
+            #scroll-button {
+                display: none;
+            }
         }
 
 
@@ -85,7 +116,7 @@
         .text-green-700 { color: #047857; } /* Verde escuro */
 
 
-        /* Estilo para células editáveis (Contagem Loja / Status) */
+        /* Estilo para células editáveis (Contagem Loja / OBS) */
         [contenteditable="true"]:focus {
             outline: none;
             box-shadow: 0 0 0 2px #c7d2fe; /* Exemplo de foco suave */
@@ -98,12 +129,10 @@
             body {
                 margin: 0;
                 padding: 0;
-                /* Define o tamanho da página A4 */
                 width: 210mm; 
                 min-height: 297mm;
             }
 
-            /* Esconde elementos não essenciais para a impressão */
             .container, .bg-white, .shadow-lg {
                 box-shadow: none !important;
                 margin: 0 !important;
@@ -116,23 +145,20 @@
                 display: none !important;
             }
 
-            /* Garante que a tabela use 100% da largura do A4 */
             .mock-table {
                 width: 100%;
                 font-size: 10pt;
             }
             .mock-table th, .mock-table td {
-                padding: 4px; /* Reduz padding para caber mais */
+                padding: 4px; 
                 border-bottom: 1px solid #ccc;
                 border-right: 1px solid #ccc;
             }
-            .mock-table th:last-child, .mock-table td:last-child {
-                border-right: none;
-            }
             
-            /* Remove forçadamente o scroll e truncamento na impressão */
-            .scroll-mode-cell {
+            /* Força todas as colunas a expandir na impressão */
+            .scroll-mode-cell-mobile, .scroll-mode-cell-numeric-mobile, .expand-mode-cell {
                 max-width: none !important;
+                min-width: 0 !important;
                 overflow-x: visible !important;
                 white-space: normal !important;
             }
@@ -273,7 +299,6 @@
         
         /**
          * Retorna o HTML completo da aba CONFERENCIA (com botão de impressão e modo scroll).
-         * NOVO: Adicionado o botão "Modo Scroll".
          */
         function renderConferenciaLayout() {
             return `
@@ -314,7 +339,7 @@
                 return `<p class="text-center text-gray-500 py-10">Nenhum dado encontrado no Google Sheets para esta aba.</p>`;
             }
 
-            // Define se a coluna "Status" (índice 5 da Conferência) deve ser editável
+            // A coluna 'OBS' (índice 5, 6ª coluna) é editável
             const isStatusEditable = sheetName === "CONFERENCIA";
             
             // Adiciona ID à tabela quando for CONFERENCIA para ser alvo do toggleScrollMode
@@ -364,7 +389,7 @@
 
                     // Lógica de Edição:
                     // 1. CONTAGEM LOJA: APENAS A COLUNA 'A' (Índice 0) é editável
-                    // 2. CONFERENCIA: APENAS A COLUNA 'STATUS' (Índice 5) é editável
+                    // 2. CONFERENCIA: APENAS A COLUNA 'OBS' (Índice 5) é editável
                     const isCellEditable = (isEditable && i === 0) || (isStatusEditable && i === 5);
 
                     if (isCellEditable) {
@@ -381,9 +406,9 @@
                         cellClasses = 'cursor-text hover:bg-indigo-50/50 focus:bg-indigo-100 border border-transparent focus:border-indigo-400 transition';
                     }
                     
-                    // NOVO: Aplica a classe inicial de expansão na 2ª coluna (Descrição do Produto)
-                    if (isStatusEditable && i === 1) { // 2ª coluna (índice 1) da Conferência
-                         // Começa no modo expandido
+                    // NOVO: Aplica a classe inicial de expansão a todas as colunas que terão toggle (Modo Expandido é o padrão para desktop)
+                    const columnsToExpand = [2, 3, 4, 5, 6]; // Colunas 2 (Descrição) a 6 (OBS)
+                    if (isStatusEditable && columnsToExpand.includes(i + 1)) { 
                          cellClasses += ' expand-mode-cell'; 
                     }
 
@@ -477,7 +502,8 @@
                 targetElementId = 'dynamic-table-content-contagem';
                 isEditable = true;
             } else if (sheetName === "CONFERENCIA") {
-                headers = ["Código de Barras", "Descrição do Produto", "Quantidade NF", "Contagem Loja", "Diferença", "Status"];
+                // 'Status' RENOMEADO para 'OBS'
+                headers = ["Código de Barras", "Descrição do Produto", "Quantidade NF", "Contagem Loja", "Diferença", "OBS"]; 
                 targetElementId = 'dynamic-table-content-conferencia';
             }
 
@@ -492,31 +518,14 @@
                         applyConferenciaStyles(headers.length);
                     }, 0);
                     
-                    // Adiciona a classe inicial de expansão nos cabeçalhos (Modo Expandido)
-                    const headerCell = document.querySelector('#conferencia-table th:nth-child(2)');
-                    if (headerCell) {
-                         headerCell.classList.add('expand-mode-cell');
-                    }
+                    // O Modo Expandido é o padrão, mas no mobile o scroll-mode é o inicial. 
+                    // No load, forçamos o texto do botão para "Modo Scroll" (estado de expansão).
+                    const button = document.getElementById('scroll-button');
+                    if(button) button.textContent = 'Modo Scroll';
                 }
                 
             } else if (sheetName !== "NOTA FISCAL" && sheetName !== "CONTAGEM LOJA") {
-                // Caso seja CONFERENCIA (ou outra aba sem layout pré-definido)
-                contentStack.innerHTML = `
-                    <div id="${sheetName.toLowerCase()}-content">
-                        ${renderTable(sheetName, data, headers, isEditable)}
-                    </div>
-                `;
-                // --- Aplica estilos condicionais após a renderização ---
-                if (sheetName === "CONFERENCIA") {
-                    setTimeout(() => {
-                        applyConferenciaStyles(headers.length);
-                    }, 0);
-                    // Adiciona a classe inicial de expansão nos cabeçalhos (Modo Expandido)
-                    const headerCell = document.querySelector('#conferencia-table th:nth-child(2)');
-                    if (headerCell) {
-                         headerCell.classList.add('expand-mode-cell');
-                    }
-                }
+                // ... (lógica de fallback)
             }
         }
         
@@ -554,33 +563,47 @@
         /**
          * Alterna entre o Modo Scroll (células truncadas com scroll horizontal interno) 
          * e o Modo Expandido (colunas se ajustam ao conteúdo mais longo).
+         * Esta função é funcional APENAS em dispositivos móveis (o botão é oculto no desktop via CSS).
          */
         function toggleScrollMode() {
+            // A tabela só existe na aba CONFERENCIA
             const table = document.getElementById('conferencia-table');
             const button = document.getElementById('scroll-button');
 
             if (!table || !button) return;
             
-            // Classes CSS que definem os dois estados
-            const scrollClasses = ['scroll-mode-cell'];
-            const expandClasses = ['expand-mode-cell'];
+            // Colunas Alvo (Índices): 2 (Descrição), 3 (Qtd NF), 4 (Contagem), 5 (Diferença), 6 (OBS)
+            const columnsToTarget = [2, 3, 4, 5, 6];
             
-            // Seleciona as células da SEGUNDA coluna (Descrição do Produto)
-            const cells = table.querySelectorAll('th:nth-child(2), td:nth-child(2)');
-            
-            // Verifica o estado atual de qualquer célula (assumindo que todas estão sincronizadas)
-            const isScrollModeActive = cells.length > 0 && cells[0].classList.contains('scroll-mode-cell');
+            // Checa o estado atual (Modo Expandido é o que está ativo se o texto for 'Modo Scroll')
+            const isScrollModeActive = button.textContent === 'Modo Expandido';
 
-            cells.forEach(cell => {
-                if (isScrollModeActive) {
-                    // Mudar para MODO EXPANDIDO: Remove scroll, adiciona expansão
-                    scrollClasses.forEach(cls => cell.classList.remove(cls));
-                    expandClasses.forEach(cls => cell.classList.add(cls));
-                } else {
-                    // Mudar para MODO SCROLL: Adiciona scroll, remove expansão
-                    expandClasses.forEach(cls => cell.classList.remove(cls));
-                    scrollClasses.forEach(cls => cell.classList.add(cls));
-                }
+            columnsToTarget.forEach(colIndex => {
+                // Seleciona o cabeçalho (th) e todas as células (td) da coluna
+                const cells = table.querySelectorAll(`th:nth-child(${colIndex}), td:nth-child(${colIndex})`);
+                
+                cells.forEach(cell => {
+                    // Classes de scroll específicas
+                    const scrollClass = 'scroll-mode-cell-mobile';
+                    const numericScrollClass = 'scroll-mode-cell-numeric-mobile';
+
+                    // Colunas numéricas usam a classe 'numeric' mais estreita (Índices 3 a 6)
+                    const isNumericColumn = colIndex >= 3 && colIndex <= 6;
+                    
+                    if (isScrollModeActive) {
+                        // Mudar para MODO EXPANDIDO (Remove scroll, adiciona expansão)
+                        cell.classList.remove(scrollClass, numericScrollClass);
+                        cell.classList.add('expand-mode-cell');
+                    } else {
+                        // Mudar para MODO SCROLL (Adiciona scroll, remove expansão)
+                        cell.classList.remove('expand-mode-cell');
+                        if (isNumericColumn) {
+                            cell.classList.add(numericScrollClass);
+                        } else {
+                            cell.classList.add(scrollClass);
+                        }
+                    }
+                });
             });
 
             // Atualiza o texto do botão
