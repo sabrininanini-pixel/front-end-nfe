@@ -204,6 +204,31 @@
                 white-space: normal !important;
             }
         }
+        
+        /* ---------------------------------------------------------------- */
+        /* --- Ajuste de Notificação para Mobile (Compactação) --- */
+        /* ---------------------------------------------------------------- */
+        /* Aplica em telas pequenas (max-width de 640px) para reduzir o tamanho da notificação */
+        @media (max-width: 640px) {
+            /* Alvo: O div de notificação */
+            #notifications-container > div {
+                /* Reduz o padding (p-4 -> p-2) */
+                padding: 0.5rem !important; 
+                /* Reduz o espaçamento entre ícone e texto (space-x-3 -> space-x-2) */
+                gap: 0.5rem !important; 
+                /* Limita a largura para garantir que não ocupe demais */
+                max-width: 80vw;
+            }
+            /* Alvo: O parágrafo de texto */
+            #notifications-container > div p {
+                font-size: 0.875rem !important; /* text-sm (14px) */
+            }
+            /* Alvo: O SVG do ícone */
+            #notifications-container > div svg {
+                width: 1.25rem !important; /* h-5 (20px) */
+                height: 1.25rem !important;
+            }
+        }
 
     </style>
 </head>
@@ -1019,6 +1044,7 @@
             const container = document.getElementById('notifications-container');
             
             let bgColor = 'bg-green-500';
+            // Os ícones são definidos com h-6 w-6 para que a media query possa reduzi-los.
             let icon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>`;
 
             if (type === 'error') {
@@ -1030,6 +1056,7 @@
             }
 
             const notification = document.createElement('div');
+            // A classe 'p-4' e 'space-x-3' serão sobrescritas no CSS para mobile
             notification.className = `p-4 text-white ${bgColor} rounded-lg shadow-xl flex items-center space-x-3 transition-opacity duration-300 opacity-0`;
             notification.innerHTML = `
                 <div>${icon}</div>
