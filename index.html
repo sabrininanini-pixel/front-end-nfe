@@ -40,15 +40,16 @@
             text-align: center; /* Centraliza o número para melhor visualização */
         }
 
-        /* Define Larguras FIXAS e estreitas (70px) para as colunas numéricas da CONFERENCIA */
-        #conferencia-content .mock-table th:nth-child(3), 
-        #conferencia-content .mock-table td:nth-child(3),
-        #conferencia-content .mock-table th:nth-child(4), 
-        #conferencia-content .mock-table td:nth-child(4),
-        #conferencia-content .mock-table th:nth-child(5), 
-        #conferencia-content .mock-table td:nth-child(5),
-        #conferencia-content .mock-table th:nth-child(6), /* Coluna 'OBS' */
-        #conferencia-content .mock-table td:nth-child(6) {
+        /* --- LARGURAS FIXAS CONFERENCIA (70px) --- */
+        /* 3ª (Qtd NF), 4ª (Contagem Loja), 5ª (Diferença), 6ª (OBS) */
+        #conferencia-table th:nth-child(3), 
+        #conferencia-table td:nth-child(3),
+        #conferencia-table th:nth-child(4), 
+        #conferencia-table td:nth-child(4),
+        #conferencia-table th:nth-child(5), 
+        #conferencia-table td:nth-child(5),
+        #conferencia-table th:nth-child(6), 
+        #conferencia-table td:nth-child(6) {
              width: 70px; 
              min-width: 70px;
              max-width: 70px;
@@ -58,9 +59,13 @@
              white-space: nowrap;
         }
         
-        /* NOVO: Define Largura FIXA e estreita (70px) para a coluna 'Quantidade' (2ª) da NOTA FISCAL */
-        #dynamic-table-content .mock-table th:nth-child(2),
-        #dynamic-table-content .mock-table td:nth-child(2) {
+        /* --- LARGURAS FIXAS NOTA FISCAL --- */
+        
+        /* 2ª Coluna: Quantidade (70px) e 4ª Coluna: Item (70px) */
+        #notafiscal-table th:nth-child(2),
+        #notafiscal-table td:nth-child(2),
+        #notafiscal-table th:nth-child(4),
+        #notafiscal-table td:nth-child(4) {
              width: 70px; 
              min-width: 70px;
              max-width: 70px;
@@ -70,15 +75,27 @@
              text-align: center; /* Centraliza o número */
         }
 
-        /* Centraliza os valores numéricos */
-        #conferencia-content .mock-table td:nth-child(3), 
-        #conferencia-content .mock-table td:nth-child(4),
-        #conferencia-content .mock-table td:nth-child(5) {
+        /* 3ª Coluna: Código de Barras (210px) */
+        #notafiscal-table th:nth-child(3),
+        #notafiscal-table td:nth-child(3) {
+            width: 210px; 
+            min-width: 210px;
+            max-width: 210px;
+            overflow: hidden; 
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            text-align: left;
+        }
+
+        /* Centraliza os valores numéricos da CONFERENCIA */
+        #conferencia-table td:nth-child(3), 
+        #conferencia-table td:nth-child(4),
+        #conferencia-table td:nth-child(5) {
              text-align: center; 
         }
 
         /* ---------------------------------------------------------------- */
-        /* --- ESTILOS DO MODO SCROLL/EXPANDIDO (UNIVERSAL) --- */
+        /* --- ESTILOS DO MODO SCROLL (ROLAGEM DINÂMICA) --- */
         /* ---------------------------------------------------------------- */
 
         /* Estilo base para MODO EXPANDIDO (Permite que a célula se ajuste ao conteúdo) */
@@ -89,25 +106,37 @@
             white-space: normal !important;
         }
 
-        /* Classe para MODO SCROLL (COLUNAS DE DESCRIÇÃO E TEXTO LONGO) */
+        /* Classe para MODO SCROLL (COLUNAS DE DESCRIÇÃO E TEXTO LONGO - 150px) */
         .scroll-mode-cell {
             max-width: 150px !important; 
             min-width: 150px !important;
-            overflow-x: scroll !important; /* Ativa a rolagem horizontal */
-            white-space: nowrap !important; /* Força o texto em uma linha */
-            text-overflow: clip !important; /* Mostra o scroll, não reticências */
+            overflow-x: auto !important; /* CORRIGIDO: Só mostra scroll se necessário */
+            white-space: nowrap !important; 
+            text-overflow: clip !important;
         }
         
-        /* Classe para MODO SCROLL (COLUNAS NUMÉRICAS OU ESTREITAS) */
+        /* Classe para MODO SCROLL (COLUNAS NUMÉRICAS OU ESTREITAS - 70px) */
         .scroll-mode-cell-numeric {
             width: 70px !important; 
             min-width: 70px !important;
             max-width: 70px !important;
-            overflow-x: scroll !important;
+            overflow-x: auto !important; /* CORRIGIDO: Só mostra scroll se necessário */
             white-space: nowrap !important;
             text-overflow: clip !important;
-            text-align: left !important; /* Alinha o texto à esquerda para o scroll do cabeçalho */
+            text-align: left !important;
         }
+        
+        /* NOVO: Classe para Código de Barras (210px) */
+        .scroll-mode-cell-code {
+            width: 210px !important; 
+            min-width: 210px !important;
+            max-width: 210px !important;
+            overflow-x: auto !important; /* CORRIGIDO: Só mostra scroll se necessário */
+            white-space: nowrap !important;
+            text-overflow: clip !important;
+            text-align: left !important;
+        }
+
 
         /* Classes usadas pelo JavaScript para aplicar as cores */
         .bg-fee2e2 { background-color: #fee2e2; } /* Vermelho suave (red-100) */
@@ -156,7 +185,7 @@
             }
             
             /* Força todas as colunas a expandir na impressão */
-            .scroll-mode-cell, .scroll-mode-cell-numeric, .expand-mode-cell {
+            .scroll-mode-cell, .scroll-mode-cell-numeric, .expand-mode-cell, .scroll-mode-cell-code {
                 max-width: none !important;
                 min-width: 0 !important;
                 overflow-x: visible !important;
@@ -424,6 +453,7 @@
                          columnsToExpand = [1, 2, 3, 4]; // Descrição, Quantidade, Código, Item
                     }
                     
+                    // Coluna 1 (índice 0) corresponde a nth-child(1)
                     if (columnsToExpand.includes(i + 1)) { 
                          cellClasses += ' expand-mode-cell'; 
                     }
@@ -596,8 +626,9 @@
             const isScrollModeActive = button.textContent === 'Modo Expandido';
             
             let columnsToTarget = [];
-            let scrollClassDesc = 'scroll-mode-cell';
-            let scrollClassNumeric = 'scroll-mode-cell-numeric';
+            const scrollClassDesc = 'scroll-mode-cell';
+            const scrollClassNumeric = 'scroll-mode-cell-numeric';
+            const scrollClassCode = 'scroll-mode-cell-code'; // Nova classe 210px
 
             if (sheetName === 'CONFERENCIA') {
                 // Colunas Alvo (Índices): 2 (Descrição), 3 (Qtd NF), 4 (Contagem), 5 (Diferença), 6 (OBS)
@@ -612,22 +643,35 @@
                 const cells = table.querySelectorAll(`th:nth-child(${colIndex}), td:nth-child(${colIndex})`);
                 
                 cells.forEach(cell => {
-                    // Determinação de coluna numérica/estreita:
-                    // CONFERENCIA: colunas 3, 4, 5, 6
-                    // NOTA FISCAL: coluna 2 (Quantidade)
-                    const isNumericColumn = (sheetName === 'CONFERENCIA' && colIndex >= 3 && colIndex <= 6) || (sheetName === 'NOTA FISCAL' && colIndex === 2);
                     
                     if (isScrollModeActive) {
-                        // Mudar para MODO EXPANDIDO
-                        cell.classList.remove(scrollClassDesc, scrollClassNumeric);
+                        // Mudar para MODO EXPANDIDO (Remove todas as classes de scroll)
+                        cell.classList.remove(scrollClassDesc, scrollClassNumeric, scrollClassCode);
                         cell.classList.add('expand-mode-cell'); 
                     } else {
                         // Mudar para MODO SCROLL
                         cell.classList.remove('expand-mode-cell');
-                        if (isNumericColumn) {
-                            cell.classList.add(scrollClassNumeric);
-                        } else {
-                            cell.classList.add(scrollClassDesc);
+
+                        if (sheetName === 'CONFERENCIA') {
+                            // CONFERENCIA: colunas 3, 4, 5, 6 são 70px
+                            const isNumericColumn = colIndex >= 3 && colIndex <= 6;
+                            if (isNumericColumn) {
+                                cell.classList.add(scrollClassNumeric);
+                            } else { // Coluna 2 (Descrição)
+                                cell.classList.add(scrollClassDesc);
+                            }
+                            
+                        } else if (sheetName === 'NOTA FISCAL') {
+                            // NOTA FISCAL: 
+                            // Coluna 2 (Quantidade) e 4 (Item) são 70px
+                            if (colIndex === 2 || colIndex === 4) {
+                                cell.classList.add(scrollClassNumeric);
+                            // Coluna 3 (Código de Barras) é 210px
+                            } else if (colIndex === 3) {
+                                cell.classList.add(scrollClassCode); 
+                            } else { // Coluna 1 (Descrição)
+                                cell.classList.add(scrollClassDesc);
+                            }
                         }
                     }
                 });
