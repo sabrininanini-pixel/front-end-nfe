@@ -6,34 +6,13 @@
     <title>Conferir Nota Fiscal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        
-        /* --- ESTILO BASE: SCROLL MODE (Com scroll, texto não quebra) --- */
-        .mock-table {
-            width: max-content !important; 
-        }
-
         .mock-table th, .mock-table td {
             padding: 12px;
             text-align: left;
+            /* Alterado: Cor mais escura para a linha horizontal (gray-200) */
             border-bottom: 1px solid #e5e7eb; 
+            /* Novo: Adiciona linha vertical sutil (gray-200) */
             border-right: 1px solid #e5e7eb; 
-            
-            white-space: nowrap; /* Força o conteúdo a ficar em uma linha */
-            text-overflow: clip; 
-            overflow: visible; 
-        }
-        
-        /* --- ESTILO PARA MODO EXPANDIDO (Sem scroll, texto quebra) --- */
-        .mock-table.expand-mode {
-            width: 100% !important; /* Força a tabela a ocupar a largura do contêiner */
-            table-layout: auto; /* Permite que o navegador ajuste o tamanho das colunas */
-        }
-        .mock-table.expand-mode th, 
-        .mock-table.expand-mode td {
-            white-space: normal !important; /* Permite a quebra de linha */
-            word-break: break-word; /* Garante que o texto longo sem espaço quebre */
-            /* Remove a largura mínima para que as colunas se ajustem, se necessário */
-            min-width: auto !important; 
         }
         
         /* Regra para remover a linha vertical da última coluna */
@@ -58,107 +37,34 @@
         /* Estilos base para a coluna Diferença (E - 5ª coluna visível) */
         #conferencia-content tr td:nth-child(5) { 
             font-weight: bold;
-            text-align: center;
+            text-align: center; /* Centraliza o número para melhor visualização */
         }
 
-        /* Define a largura mínima para Quantidade NF (3ª coluna) e Status (6ª coluna) */
+        /* Define a largura da coluna Status (6ª coluna) igual à Quantidade NF (3ª coluna) */
         #conferencia-content .mock-table th:nth-child(3), 
         #conferencia-content .mock-table td:nth-child(3),
         #conferencia-content .mock-table th:nth-child(6), 
         #conferencia-content .mock-table td:nth-child(6) {
+             width: 100px; /* Largura fixa para ambas */
              min-width: 100px;
-        }
-
-        /* Garante que colunas com min-width se ajustem no modo expandido */
-        #conferencia-content .mock-table.expand-mode th:nth-child(3), 
-        #conferencia-content .mock-table.expand-mode td:nth-child(3),
-        #conferencia-content .mock-table.expand-mode th:nth-child(6), 
-        #conferencia-content .mock-table.expand-mode td:nth-child(6) {
-             min-width: auto !important;
+             max-width: 100px;
+             overflow: hidden;
+             text-overflow: ellipsis;
+             white-space: nowrap;
         }
 
 
-        /* --- CORES PARA O FUNDO DA CÉLULA DIFERENÇA (Ajustado com alta especificidade) --- */
-        /* Vermelho (Negativo) */
-        #conferencia-content tr td:nth-child(5).bg-fee2e2 { 
-            background-color: #fee2e2 !important; 
-        }
-        #conferencia-content tr td:nth-child(5).text-b91c1c { 
-            color: #b91c1c !important; 
-        }
-        /* Verde (Positivo) */
-        #conferencia-content tr td:nth-child(5).bg-green-100 { 
-            background-color: #d1fae5 !important; 
-        } 
-        #conferencia-content tr td:nth-child(5).text-green-700 { 
-            color: #047857 !important; 
-        } 
-        /* --------------------------------------------------------------------------------- */
+        /* Classes usadas pelo JavaScript para aplicar as cores */
+        .bg-fee2e2 { background-color: #fee2e2; } /* Vermelho suave (red-100) */
+        .text-b91c1c { color: #b91c1c; } /* Vermelho escuro (red-700) */
+        .bg-green-100 { background-color: #d1fae5; } /* Verde suave */
+        .text-green-700 { color: #047857; } /* Verde escuro */
 
 
         /* Estilo para células editáveis (Contagem Loja / Status) */
         [contenteditable="true"]:focus {
             outline: none;
-            box-shadow: 0 0 0 2px #c7d2fe;
-        }
-        
-        /* ---------------------------------------------------------------- */
-        /* --- PADDING RESPONSIVO (Apenas para celular < 768px) --- */
-        /* ---------------------------------------------------------------- */
-        @media (max-width: 767px) {
-            
-            /* 1. Remove padding e limitações de largura do container principal */
-            .container {
-                padding: 0 !important;
-                max-width: 100% !important;
-            }
-            
-            /* 2. Ajusta a box branca principal (o 'card' do app) para se estender completamente. */
-            .container .bg-white {
-                border-radius: 0;
-                border-left: none;
-                border-right: none;
-                padding: 1.5rem 0 !important; 
-            }
-            
-            /* 3. Adiciona o padding horizontal de 1rem de volta aos elementos internos que devem ser alinhados (header, botões, navegação). */
-            header, nav, .flex.flex-wrap, #content-stack {
-                padding-left: 1rem;
-                padding-right: 1rem;
-            }
-            
-            /* 4. Corrige o padding da navegação para se alinhar ao conteúdo */
-            nav {
-                border-bottom: 1px solid #e5e7eb; 
-                margin: 0 1rem; 
-            }
-            
-            /* 5. Garante que o container da tabela (com scroll) se alinhe ao conteúdo. */
-            .overflow-x-auto {
-                border-radius: 0 !important;
-                box-shadow: none !important;
-                border: none !important;
-                /* Remove o padding lateral do overflow-x-auto, pois o pai #content-stack já tem */
-                padding-left: 0; 
-                padding-right: 0;
-            }
-            
-            /* 6. Regra para a Coluna 'Descrição' (para dar mais espaço em mobile) */
-            #dynamic-table-content .mock-table th:nth-child(1),
-            #dynamic-table-content .mock-table td:nth-child(1),
-            #conferencia-content .mock-table th:nth-child(2),
-            #conferencia-content .mock-table td:nth-child(2) {
-                min-width: 250px !important; 
-            }
-            
-            /* 7. Colunas de Quantidade - Permite que 'nowrap' funcione */
-             #conferencia-content .mock-table th:nth-child(6), 
-             #conferencia-content .mock-table td:nth-child(6), 
-             #conferencia-content .mock-table th:nth-child(3), 
-             #conferencia-content .mock-table td:nth-child(3) { 
-                 width: auto !important; 
-                 max-width: none !important;
-             }
+            box-shadow: 0 0 0 2px #c7d2fe; /* Exemplo de foco suave */
         }
         
         /* ---------------------------------------------------------------- */
@@ -168,6 +74,7 @@
             body {
                 margin: 0;
                 padding: 0;
+                /* Define o tamanho da página A4 */
                 width: 210mm; 
                 min-height: 297mm;
             }
@@ -187,15 +94,13 @@
 
             /* Garante que a tabela use 100% da largura do A4 */
             .mock-table {
-                width: 100% !important;
+                width: 100%;
                 font-size: 10pt;
             }
             .mock-table th, .mock-table td {
-                padding: 4px; 
+                padding: 4px; /* Reduz padding para caber mais */
                 border-bottom: 1px solid #ccc;
                 border-right: 1px solid #ccc;
-                /* Permite a quebra de linha na impressão */
-                white-space: normal !important; 
             }
             .mock-table th:last-child, .mock-table td:last-child {
                 border-right: none;
@@ -247,16 +152,9 @@
         const BACKEND_URL = "https://back-end-nfe.onrender.com";
         const USER_ID = "web-user-123";
         
-        // --- Gerenciamento de Abas e Modo de Visualização ---
+        // --- Gerenciamento de Abas ---
         const tabButtons = document.querySelectorAll('.tab-button');
         const contentStack = document.getElementById('content-stack');
-        let currentTab = 'NOTA FISCAL'; // Variável para rastrear a aba atual
-        
-        // Variáveis do Novo Toggle
-        let scrollModeActive = true; // True = Scroll Mode (Padrão), False = Expand Mode
-        const scrollModeIcon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>`;
-        const expandModeIcon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-5v4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 0h-4m4 0l-5-5" /></svg>`;
-
 
         tabButtons.forEach(button => {
             button.addEventListener('click', () => switchTab(button.dataset.tab));
@@ -267,8 +165,6 @@
          * @param {string} sheetName O nome da aba (que é também o nome da planilha no Sheets).
          */
         function switchTab(sheetName) {
-            currentTab = sheetName; // Atualiza a aba atual
-            
             // 1. Atualiza o estilo dos botões
             tabButtons.forEach(btn => {
                 if (btn.dataset.tab === sheetName) {
@@ -296,7 +192,7 @@
             loadTabContent(sheetName);
         }
 
-        // ÍCONES REPETIDOS
+        // ÍCONE DE DOCUMENTO (REPETIDO)
         const documentIcon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>`;
         const printerIcon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m-1-5a1 1 0 100-2 1 1 0 000 2zm10 0a1 1 0 100-2 1 1 0 000 2zm-4 4h4v2a2 2 0 01-2 2h-4a2 2 0 01-2-2v-2h4z" /></svg>`;
 
@@ -305,7 +201,6 @@
          * Retorna o HTML completo da aba NOTA FISCAL (botões + placeholder da tabela).
          */
         function renderNotaFiscalLayout() {
-            // O botão de alternância é adicionado ao grupo de botões
             return `
                 <div class="flex flex-wrap gap-3 pb-4 mb-4 border-b border-gray-200 print-hidden">
                     <label for="xml-file-upload" class="flex items-center space-x-2 px-4 py-2 bg-gray-100 text-gray-800 rounded-lg shadow-sm hover:bg-gray-200 transition duration-150 cursor-pointer text-sm font-medium border border-gray-300">
@@ -319,17 +214,8 @@
                         <span>Importar por Chave de Acesso</span>
                     </button>
                     
-                    <button id="toggle-scroll-btn-nf" onclick="toggleTableMode()" class="flex items-center space-x-2 px-4 py-2 bg-indigo-100 text-indigo-700 rounded-lg shadow-sm hover:bg-indigo-200 transition duration-150 text-sm font-medium border border-indigo-300">
-                        <span id="toggle-icon-container">
-                            ${scrollModeIcon}
-                        </span>
-                        <span id="toggle-text-container">
-                            Modo Scroll
-                        </span>
-                    </button>
-                    
                     <button onclick="confirmClearAllSheets()" class="flex items-center space-x-2 px-4 py-2 bg-red-50 text-red-700 rounded-lg shadow-sm hover:bg-red-100 transition duration-150 text-sm font-medium border border-red-200">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 10 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-2 0v6a1 1 0 102 0V7z" clip-rule="evenodd" /></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-2 0v6a1 1 0 102 0V7z" clip-rule="evenodd" /></svg>
                         <span>Apagar Dados</span>
                     </button>
                 </div>
@@ -356,28 +242,20 @@
         }
         
         /**
-         * Retorna o HTML completo da aba CONFERENCIA (com botão de impressão e toggle).
+         * Retorna o HTML completo da aba CONFERENCIA (com botão de impressão).
+         * NOVO: Adicionado o botão "Modo Scroll".
          */
         function renderConferenciaLayout() {
-            // O botão de alternância é adicionado ao grupo de botões
             return `
                 <div id="conferencia-content">
                     <div class="flex flex-wrap gap-3 pb-4 mb-4 border-b border-gray-200 print-hidden">
-                        
                         <button onclick="printConferencia()" class="flex items-center space-x-2 px-4 py-2 bg-blue-100 text-blue-700 rounded-lg shadow-sm hover:bg-blue-200 transition duration-150 text-sm font-medium border border-blue-300">
                             <span class="text-blue-600">${printerIcon}</span>
                             <span>Imprimir Conferência</span>
                         </button>
-
-                        <button id="toggle-scroll-btn-conf" onclick="toggleTableMode()" class="flex items-center space-x-2 px-4 py-2 bg-indigo-100 text-indigo-700 rounded-lg shadow-sm hover:bg-indigo-200 transition duration-150 text-sm font-medium border border-indigo-300">
-                            <span id="toggle-icon-container">
-                                ${scrollModeActive ? scrollModeIcon : expandModeIcon}
-                            </span>
-                            <span id="toggle-text-container">
-                                ${scrollModeActive ? "Modo Scroll" : "Modo Expandido"}
-                            </span>
+                        <button onclick="toggleScrollMode()" id="scroll-button" class="flex items-center space-x-2 px-4 py-2 bg-gray-100 text-gray-800 rounded-lg shadow-sm hover:bg-gray-200 transition duration-150 text-sm font-medium border border-gray-300">
+                            <span>Modo Scroll</span>
                         </button>
-
                     </div>
                     <div id="dynamic-table-content-conferencia">
                         <p class="text-center text-gray-400 py-10">Carregando dados...</p>
@@ -394,7 +272,7 @@
         }
 
         /**
-         * Renderiza os dados do Sheets em uma tabela HTML. (Não alterada)
+         * Renderiza os dados do Sheets em uma tabela HTML.
          */
         function renderTable(sheetName, data, headers, isEditable = false) {
             
@@ -408,12 +286,14 @@
 
             // Define se a coluna "Status" (índice 5 da Conferência) deve ser editável
             const isStatusEditable = sheetName === "CONFERENCIA";
+            
+            // NOVO: Adiciona ID ao wrapper da tabela para controle de scroll na Conferência
+            const tableWrapperID = isStatusEditable ? 'conferencia-table-wrapper' : '';
 
-            // O contêiner pai mantém o overflow-x-auto para que o scroll horizontal funcione no PC e Mobile.
-            // A classe 'w-full' foi REMOVIDA da tag <table> para evitar conflito com 'width: max-content'
+
             let html = `
-                <div class="rounded-lg border border-gray-200 overflow-x-auto shadow-sm">
-                    <table class="mock-table text-sm" id="${isEditable ? 'contagem-table' : (isStatusEditable ? 'conferencia-table' : '')}">
+                <div id="${tableWrapperID}" class="rounded-lg border border-gray-200 overflow-x-auto shadow-sm">
+                    <table class="mock-table w-full text-sm" id="${isEditable ? 'contagem-table' : (isStatusEditable ? 'conferencia-table' : '')}">
                         <thead class="bg-gray-50 sticky top-0">
                             <tr>`;
             
@@ -490,7 +370,7 @@
         }
 
         /**
-         * Renderiza a linha editável vazia para começar a contagem. (Não alterada)
+         * Renderiza a linha editável vazia para começar a contagem.
          */
         function renderEmptyContagemTable(sheetName, headers) {
              const startRowIndex = 2; // O primeiro item de contagem sempre vai para a Linha 2 do Sheets.
@@ -500,7 +380,7 @@
              
              return `
                  <div class="rounded-lg border border-gray-200 overflow-x-auto shadow-sm">
-                    <table class="mock-table text-sm" id="contagem-table">
+                    <table class="mock-table w-full text-sm" id="contagem-table">
                         <thead class="bg-gray-50 sticky top-0">
                             <tr><th>${headers[0]}</th></tr>
                         </thead>
@@ -513,7 +393,7 @@
         }
 
         /**
-         * Renderiza uma linha vazia com a primeira célula editável (usada apenas pela Contagem Loja). (Não alterada)
+         * Renderiza uma linha vazia com a primeira célula editável (usada apenas pela Contagem Loja).
          */
         function renderEditableRow(sheetName, headers, sheetRowIndex) {
             let html = `<tr data-row-index="${sheetRowIndex}">`;
@@ -568,11 +448,6 @@
             if (targetElement) {
                 targetElement.innerHTML = renderTable(sheetName, data, headers, isEditable);
                 
-                // --- NOVO: Aplica o modo de visualização correto após a renderização ---
-                if (sheetName === "NOTA FISCAL" || sheetName === "CONFERENCIA") {
-                     updateTableModeDisplay();
-                }
-                
                 // --- Aplica estilos condicionais após a renderização ---
                 if (sheetName === "CONFERENCIA") {
                     // Espera o DOM ser atualizado antes de aplicar os estilos
@@ -588,60 +463,18 @@
                         ${renderTable(sheetName, data, headers, isEditable)}
                     </div>
                 `;
-                // --- NOVO: Aplica o modo de visualização correto após a renderização ---
+                // --- Aplica estilos condicionais após a renderização ---
                 if (sheetName === "CONFERENCIA") {
-                     updateTableModeDisplay();
                     setTimeout(() => {
                         applyConferenciaStyles(headers.length);
                     }, 0);
                 }
             }
         }
-
-        /**
-         * Alterna entre o modo Scroll Horizontal e o modo Expandido.
-         */
-        function toggleTableMode() {
-            scrollModeActive = !scrollModeActive;
-            updateTableModeDisplay();
-        }
-
-        /**
-         * Aplica as classes CSS de acordo com o estado atual (scrollModeActive).
-         * Deve ser chamada sempre que a tabela é renderizada ou quando o botão é clicado.
-         */
-        function updateTableModeDisplay() {
-            const table = document.querySelector('.mock-table');
-            const scrollContainer = document.querySelector('.overflow-x-auto');
-            const toggleIconContainer = document.getElementById('toggle-icon-container');
-            const toggleTextContainer = document.getElementById('toggle-text-container');
-            
-            if (!table || !scrollContainer || !toggleIconContainer || !toggleTextContainer) {
-                return; 
-            }
-            
-            // 1. Toggle Mode na Tabela
-            if (scrollModeActive) {
-                // SCROLL MODE: width: max-content, white-space: nowrap
-                table.classList.remove('expand-mode');
-                scrollContainer.classList.remove('overflow-x-hidden');
-                scrollContainer.classList.add('overflow-x-auto');
-                toggleIconContainer.innerHTML = scrollModeIcon;
-                toggleTextContainer.textContent = "Modo Scroll";
-                
-            } else {
-                // EXPAND MODE: width: 100%, white-space: normal
-                table.classList.add('expand-mode');
-                scrollContainer.classList.remove('overflow-x-auto');
-                scrollContainer.classList.add('overflow-x-hidden');
-                toggleIconContainer.innerHTML = expandModeIcon;
-                toggleTextContainer.textContent = "Modo Expandido";
-            }
-        }
-
         
         /**
-         * Aplica formatação condicional à coluna Diferença (E) na aba CONFERENCIA. (Não alterada)
+         * Aplica formatação condicional à coluna Diferença (E) na aba CONFERENCIA.
+         * @param {number} numCols Número total de colunas para encontrar a 5ª.
          */
         function applyConferenciaStyles(numCols) {
             // A coluna 'Diferença' é a 5ª coluna (nth-child(5)) da tabela
@@ -654,12 +487,12 @@
                 // Tenta converter o conteúdo da célula para número (substituindo vírgula por ponto para o parse)
                 let value = parseFloat(diffCell.textContent.replace(',', '.').trim());
                 
-                // Remove quaisquer classes de cor existentes antes de aplicar as novas
+                // Remove quaisquer classes de cor existentes
                 diffCell.classList.remove('bg-fee2e2', 'text-b91c1c', 'bg-green-100', 'text-green-700');
 
-                // A lógica de aplicação de classes Tailwind está correta aqui
                 if (isNaN(value) || value === 0) {
                     // Valor Zero ou Vazio (Neutro - sem cor)
+                    // Não adiciona classes de cor.
                 } else if (value < 0) {
                     // Regra Vermelha (Negativo)
                     diffCell.classList.add('bg-fee2e2', 'text-b91c1c');
@@ -670,8 +503,34 @@
             });
         }
 
+        /**
+         * Alterna entre o modo de rolagem vertical e o modo expandido para a tabela de Conferência.
+         * NOVO: Implementação do toggle usando classList.toggle().
+         */
+        function toggleScrollMode() {
+            // Usa o ID adicionado na função renderTable
+            const tableWrapper = document.getElementById('conferencia-table-wrapper'); 
+            const button = document.getElementById('scroll-button');
+            
+            // Classes Tailwind para limitar a altura e permitir o scroll vertical
+            const scrollClasses = ['max-h-[60vh]', 'overflow-y-scroll']; 
 
-        // --- Funções de API e Utilitários (Não Alteradas) ---
+            if (!tableWrapper || !button) return;
+
+            // 1. Alterna as classes que ativam o scroll
+            // Se a classe não existe, ela é adicionada; se existe, é removida.
+            scrollClasses.forEach(cls => tableWrapper.classList.toggle(cls));
+
+            // 2. Atualiza o texto do botão com base no estado atual
+            if (tableWrapper.classList.contains('max-h-[60vh]')) {
+                button.textContent = 'Modo Expandido';
+            } else {
+                button.textContent = 'Modo Scroll';
+            }
+        }
+
+
+        // --- Funções de API e Utilitários (demais funções inalteradas) ---
 
         /**
          * Lida com a tecla pressionada na célula da Contagem Loja.
@@ -815,7 +674,6 @@
                     showNotification(`Erro: ${result.error || 'Falha desconhecida ao importar XML.'}`, "error");
                 } else {
                     showNotification(result.message, "success");
-                    chaveInput.value = ''; // Limpa o campo após o sucesso
                     hidePasteModal();
                     // Recarrega a aba para mostrar os novos dados inseridos
                     switchTab("NOTA FISCAL");
@@ -969,11 +827,6 @@
 
         function showPasteModal() {
             document.getElementById('paste-modal').classList.remove('hidden');
-            // Foca o campo de input quando o modal abre
-            const chaveInput = document.getElementById("chave-acesso-input");
-            if (chaveInput) {
-                chaveInput.focus();
-            }
         }
 
         function hidePasteModal() {
@@ -1057,18 +910,6 @@
                     // Implementação de fallback ou aviso
                 }
             }
-            
-            // NOVO: Adiciona o listener para o ENTER no campo da chave de acesso do modal
-            const chaveInput = document.getElementById("chave-acesso-input");
-            if (chaveInput) {
-                chaveInput.addEventListener('keydown', function(event) {
-                    if (event.key === 'Enter') {
-                        event.preventDefault(); // Impede o comportamento padrão de formulário
-                        importarXMLPorChave(); 
-                    }
-                });
-            }
-
             switchTab('NOTA FISCAL'); 
         });
 
