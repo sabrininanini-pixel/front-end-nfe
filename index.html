@@ -375,7 +375,7 @@
          * Renderiza a tabela da Contagem Loja com 3000 linhas pré-renderizadas.
          */
         function renderContagemTableFixedRows(data, headers) {
-            const fixedRows = 2000;
+            const fixedRows = 3000;
             // Assume que a primeira linha de `data` é o cabeçalho se for retornado do Sheets
             const existingData = (data.length > 0 && headers.length > 0 && String(data[0][0]) === headers[0]) 
                                  ? data.slice(1) 
@@ -528,7 +528,7 @@
                 headers = ["Código de Barras"]; 
                 targetElementId = 'dynamic-table-content-contagem';
                 
-                // NOVO: Renderiza a tabela de 3000 linhas fixas
+                // Renderiza a tabela de 3000 linhas fixas
                 const targetElement = document.getElementById(targetElementId);
                 if (targetElement) {
                     targetElement.innerHTML = renderContagemTableFixedRows(data, headers);
@@ -830,10 +830,12 @@
         const sheetsConfig = [
             { name: "NOTA FISCAL", range: 'A2:Z' },
             { name: "CONTAGEM LOJA", range: 'A2:Z' },
+            // NOVO: Adicionado para limpar apenas a coluna OBS (F) da aba Conferência
+            { name: "CONFERENCIA", range: 'F2:F' } 
         ];
 
         function confirmClearAllSheets() {
-            const confirmationMessage = "ATENÇÃO: Você tem certeza que deseja APAGAR TODOS os dados de entrada? Os dados serão atualizados automaticamente após a limpeza.";
+            const confirmationMessage = "ATENÇÃO: Você tem certeza que deseja APAGAR TODOS os dados de entrada (Nota Fiscal e Contagem Loja) E a coluna OBS da Conferência?";
             
             if (confirm(confirmationMessage)) {
                 clearMultipleSheets();
@@ -852,14 +854,14 @@
                     successCount++;
                 } else {
                     errorCount++;
-                    showNotification(`Erro ao limpar a aba '${config.name}'.`, 'error', 4000);
+                    showNotification(`Erro ao limpar a aba '${config.name}' (Range: ${config.range}).`, 'error', 4000);
                 }
             }
 
             hideNotification();
 
             if (errorCount === 0) {
-                showNotification(`Limpeza global concluída! ${successCount} abas de entrada limpas com sucesso. As fórmulas da Conferência foram preservadas.`, 'success', 5000);
+                showNotification(`Limpeza global concluída! ${successCount} ações de limpeza realizadas com sucesso.`, 'success', 5000);
             } else {
                  showNotification(`Limpeza global concluída com ${errorCount} erro(s). Verifique o console.`, 'warning', 8000);
             }
