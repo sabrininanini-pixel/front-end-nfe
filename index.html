@@ -333,7 +333,7 @@
             return `
                 <div id="contagem-loja-content">
                     <div class="p-4 bg-yellow-50 border border-yellow-200 rounded-lg mb-4 print-hidden">
-                        <p class="font-semibold text-yellow-800 text-lg">Escanear abaixo 11</p>
+                        <p class="font-semibold text-yellow-800 text-lg">Escanear abaixo 123</p>
                     </div>
                     <div id="dynamic-table-content-contagem">
                         <p class="text-center text-gray-400 py-10">Carregando dados...</p>
@@ -373,10 +373,12 @@
 
         /**
          * Renderiza a tabela da Contagem Loja com 3000 linhas pré-renderizadas.
+         * A primeira célula editável (A2) é mapeada para a primeira linha de dados do Sheets.
          */
         function renderContagemTableFixedRows(data, headers) {
             const fixedRows = 3000;
-            // Assume que a primeira linha de `data` é o cabeçalho se for retornado do Sheets
+            // A lista de dados existente é tudo o que vem do Sheets.
+            // Se o primeiro elemento for igual ao header, remove o header (comportamento padrão de fetchSheetsData)
             const existingData = (data.length > 0 && headers.length > 0 && String(data[0][0]) === headers[0]) 
                                  ? data.slice(1) 
                                  : data; 
@@ -390,7 +392,7 @@
                         <tbody>`;
 
             for (let rowIndex = 0; rowIndex < fixedRows; rowIndex++) {
-                // A contagem no Sheets começa em 2 (A2)
+                // Mapeamento: rowIndex 0 (primeira linha do <tbody>) corresponde à linha 2 do Sheets (A2)
                 const sheetRowIndex = rowIndex + 2; 
                 const sheetRange = `A${sheetRowIndex}`;
                 
@@ -534,11 +536,9 @@
                     targetElement.innerHTML = renderContagemTableFixedRows(data, headers);
                     
                     // NOVO: Chama a função que encontra a primeira célula vazia, foca nela e rola a tela
-                    // Usamos setTimeout e requestAnimationFrame para garantir que a lógica de foco
-                    // e cursor seja executada após a renderização e o foco padrão do navegador.
                     setTimeout(() => {
                         requestAnimationFrame(focusNextEmptyContagemCell);
-                    }, 100); // Aumento do delay para maior estabilidade no foco
+                    }, 100); 
                 }
 
             } else if (sheetName === "CONFERENCIA") {
@@ -560,10 +560,9 @@
         /**
          * Encontra a primeira célula vazia (após a última preenchida) na Contagem Loja, 
          * foca nela e rola a tela.
-         * Esta função só busca células contenteditable, que começam em A2.
          */
         function focusNextEmptyContagemCell() {
-            // Seleciona todas as células editáveis (TD), ignorando o cabeçalho (TH - A1)
+            // Seleciona todas as células editáveis (TD), ignorando o cabeçalho (TH)
             const cells = document.querySelectorAll('#contagem-table td[contenteditable="true"]');
             
             // Inicia como nulo.
@@ -599,7 +598,7 @@
                 
                 cellToFocus.focus();
                 
-                // moveCursorToEnd é crucial para que o navegador não selecione o texto,
+                // moveCursorToEnd é crucial para que o navegador não selecione o texto existente,
                 // o que causaria a sobrescrita pelo próximo caractere digitado/scaneado.
                 moveCursorToEnd(cellToFocus); 
             }
@@ -614,8 +613,6 @@
             const selection = window.getSelection();
             
             // Garante que o cursor está no final do nó de texto, evitando a seleção total.
-            // Se o elemento estiver vazio (caso padrão), childNodes.length será 0 e o cursor 
-            // será posicionado em 0, o que é o início.
             if (element.childNodes.length > 0) {
                  const node = element.childNodes[0];
                  // Verifica se é um nó de texto (para evitar erros em outros tipos de nós)
@@ -733,30 +730,39 @@
 
 
         // --- Funções de API e Utilitários ---
-
+        
+        /**
+         * GERENCIA O COMPORTAMENTO DO ENTER NA CONTAGEM LOJA.
+         * Salva o valor da célula atual e pula para a próxima célula, SEM APAGAR o conteúdo dela.
+         */
         function handleContagemKeyPress(event, sheetRange, sheetName) {
             if (event.keyCode === 13) {
                 event.preventDefault();
                 
                 const element = event.target;
                 // 1. Salva a célula atual
-                handleCellEdit(element, sheetRange, sheetName);
+                handleCellEdit(element, sheetRange, sheetName); 
 
                 // 2. Calcula a próxima linha 
                 const currentRow = parseInt(sheetRange.slice(1));
                 const nextRow = currentRow + 1;
                 const nextRange = `A${nextRow}`;
 
-                // 3. Tenta encontrar a próxima célula pré-renderizada (A3, A4, etc.)
+                // 3. Tenta encontrar a próxima célula pré-renderizada
                 const nextCell = document.querySelector(`td[data-sheet-range="${nextRange}"]`);
                 
                 if (nextCell) {
-                    // Limpa o conteúdo e foca na próxima
-                    nextCell.textContent = '';
-                    nextCell.dataset.originalValue = '';
+                    // NOVO COMPORTAMENTO: Não apaga o conteúdo da próxima célula, apenas foca.
                     nextCell.focus();
+                    
+                    // Move o cursor para o final (se preenchida) ou início (se vazia).
+                    // Isso é crucial para evitar que o navegador selecione o texto e o próximo scan o apague.
+                    moveCursorToEnd(nextCell); 
+                    
+                    // Rola para a célula
+                    nextCell.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    
                 } else {
-                    // Se não encontrar (passou da linha 3001), não faz nada.
                     showNotification("Fim da lista pré-renderizada. Pressione F5 para recarregar a página e continuar a contagem.", 'warning', 5000);
                 }
             }
