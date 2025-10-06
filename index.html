@@ -6,15 +6,110 @@
     <title>Conferir Nota Fiscal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
+        
+        /* --- ESTILO BASE: SCROLL MODE (Com scroll, texto não quebra) --- */
+        .mock-table {
+            width: max-content !important; 
+        }
+
         .mock-table th, .mock-table td {
             padding: 12px;
             text-align: left;
-            /* Alterado: Cor mais escura para a linha horizontal (gray-200) */
             border-bottom: 1px solid #e5e7eb; 
-            /* Novo: Adiciona linha vertical sutil (gray-200) */
             border-right: 1px solid #e5e7eb; 
+            
+            white-space: nowrap; /* Força o conteúdo a ficar em uma linha */
+            text-overflow: clip; 
+            overflow: visible; 
         }
         
+        /* ---------------------------------------------------------------- */
+        /* --- ESTILOS DE LARGURA FIXA PARA MODO SCROLL (Larguras Solicitadas) --- */
+        /* ---------------------------------------------------------------- */
+
+        /* 1. NOTA FISCAL (4 Colunas) */
+        
+        /* Coluna 1: Descrição (Maior - 250px) */
+        #dynamic-table-content .mock-table th:nth-child(1),
+        #dynamic-table-content .mock-table td:nth-child(1) {
+            min-width: 250px; 
+        }
+
+        /* Coluna 2: Quantidade (70px) */
+        #dynamic-table-content .mock-table th:nth-child(2),
+        #dynamic-table-content .mock-table td:nth-child(2) {
+            min-width: 70px;
+            text-align: center;
+        }
+
+        /* Coluna 3: Código de Barras (140px) */
+        #dynamic-table-content .mock-table th:nth-child(3),
+        #dynamic-table-content .mock-table td:nth-child(3) {
+            min-width: 140px;
+        }
+
+        /* Coluna 4: Item (70px) */
+        #dynamic-table-content .mock-table th:nth-child(4),
+        #dynamic-table-content .mock-table td:nth-child(4) {
+            min-width: 70px;
+            text-align: center;
+        }
+
+        /* 2. CONFERENCIA (6 Colunas) */
+        
+        /* Coluna 1: Código de Barras (140px) */
+        #conferencia-content .mock-table th:nth-child(1),
+        #conferencia-content .mock-table td:nth-child(1) {
+            min-width: 140px;
+        }
+
+        /* Coluna 2: Descrição (Maior - 250px) */
+        #conferencia-content .mock-table th:nth-child(2),
+        #conferencia-content .mock-table td:nth-child(2) {
+            min-width: 250px;
+        }
+
+        /* Coluna 3: Quantidade NF (100px) */
+        #conferencia-content .mock-table th:nth-child(3),
+        #conferencia-content .mock-table td:nth-child(3) {
+            min-width: 100px;
+            text-align: center;
+        }
+
+        /* Coluna 4: Contagem Loja (100px) */
+        #conferencia-content .mock-table th:nth-child(4),
+        #conferencia-content .mock-table td:nth-child(4) {
+            min-width: 100px;
+            text-align: center;
+        }
+
+        /* Coluna 5: Diferença (70px) */
+        #conferencia-content .mock-table th:nth-child(5),
+        #conferencia-content .mock-table td:nth-child(5) {
+            min-width: 70px;
+            text-align: center;
+        }
+
+        /* Coluna 6: Status/OBS (100px) */
+        #conferencia-content .mock-table th:nth-child(6),
+        #conferencia-content .mock-table td:nth-child(6) {
+            min-width: 100px;
+        }
+
+        /* --- ESTILO PARA MODO EXPANDIDO (Sem scroll, texto quebra) --- */
+        .mock-table.expand-mode {
+            width: 100% !important; 
+            table-layout: auto; 
+        }
+        
+        .mock-table.expand-mode th, 
+        .mock-table.expand-mode td {
+            white-space: normal !important; 
+            word-break: break-word; 
+            /* REVERTE as larguras fixas quando está no modo expandido */
+            min-width: auto !important; 
+        }
+
         /* Regra para remover a linha vertical da última coluna */
         .mock-table th:last-child, .mock-table td:last-child {
             border-right: none;
@@ -31,69 +126,75 @@
         }
 
         /* ---------------------------------------------------------------- */
-        /* --- Estilos para Modo Scroll (Padrão) e Modo Expandido --- */
-        /* ---------------------------------------------------------------- */
-        
-        /* Configuração Padrão (Modo Scroll) */
-        .mock-table-container {
-            overflow-x: auto; /* Garante o scroll horizontal no contêiner */
-        }
-        
-        .mock-table {
-            width: max-content !important; /* Força a tabela a ser tão larga quanto o conteúdo */
-        }
-        .mock-table th, .mock-table td {
-            white-space: nowrap; /* Força o conteúdo a ficar em uma linha */
-            text-overflow: clip; 
-            overflow: visible; 
-        }
-        
-        /* Modo Expandido */
-        .mock-table.expand-mode {
-            width: 100% !important; /* Força a tabela a ocupar a largura do contêiner */
-            table-layout: auto; /* Permite que o navegador ajuste o tamanho das colunas */
-        }
-        .mock-table.expand-mode th, 
-        .mock-table.expand-mode td {
-            white-space: normal !important; /* Permite a quebra de linha */
-            word-break: break-word; /* Garante que o texto longo sem espaço quebre */
-        }
-
-
-        /* ---------------------------------------------------------------- */
         /* --- Estilos de Edição/Conferência --- */
         /* ---------------------------------------------------------------- */
         
         /* Estilos base para a coluna Diferença (E - 5ª coluna visível) */
         #conferencia-content tr td:nth-child(5) { 
             font-weight: bold;
-            text-align: center; /* Centraliza o número para melhor visualização */
-        }
-
-        /* Define a largura da coluna Status (6ª coluna) igual à Quantidade NF (3ª coluna) */
-        #conferencia-content .mock-table th:nth-child(3), 
-        #conferencia-content .mock-table td:nth-child(3),
-        #conferencia-content .mock-table th:nth-child(6), 
-        #conferencia-content .mock-table td:nth-child(6) {
-             width: 100px; /* Largura fixa para ambas */
-             min-width: 100px;
-             max-width: 100px;
-             /* Preserva a quebra de texto apenas para esta coluna no modo Scroll */
-             white-space: normal; 
+            text-align: center;
         }
 
 
-        /* Classes usadas pelo JavaScript para aplicar as cores */
-        .bg-fee2e2 { background-color: #fee2e2; } /* Vermelho suave (red-100) */
-        .text-b91c1c { color: #b91c1c; } /* Vermelho escuro (red-700) */
-        .bg-green-100 { background-color: #d1fae5; } /* Verde suave */
-        .text-green-700 { color: #047857; } /* Verde escuro */
+        /* --- CORES PARA O FUNDO DA CÉLULA DIFERENÇA (Ajustado com alta especificidade) --- */
+        /* Vermelho (Negativo) */
+        #conferencia-content tr td:nth-child(5).bg-fee2e2 { 
+            background-color: #fee2e2 !important; 
+        }
+        #conferencia-content tr td:nth-child(5).text-b91c1c { 
+            color: #b91c1c !important; 
+        }
+        /* Verde (Positivo) */
+        #conferencia-content tr td:nth-child(5).bg-green-100 { 
+            background-color: #d1fae5 !important; 
+        } 
+        #conferencia-content tr td:nth-child(5).text-green-700 { 
+            color: #047857 !important; 
+        } 
+        /* --------------------------------------------------------------------------------- */
 
 
         /* Estilo para células editáveis (Contagem Loja / Status) */
         [contenteditable="true"]:focus {
             outline: none;
-            box-shadow: 0 0 0 2px #c7d2fe; /* Exemplo de foco suave */
+            box-shadow: 0 0 0 2px #c7d2fe;
+        }
+        
+        /* ---------------------------------------------------------------- */
+        /* --- PADDING RESPONSIVO (Apenas para celular < 768px) --- */
+        /* ---------------------------------------------------------------- */
+        @media (max-width: 767px) {
+            
+            /* Ajustes visuais para mobile */
+            .container {
+                padding: 0 !important;
+                max-width: 100% !important;
+            }
+            
+            .container .bg-white {
+                border-radius: 0;
+                border-left: none;
+                border-right: none;
+                padding: 1.5rem 0 !important; 
+            }
+            
+            header, nav, .flex.flex-wrap, #content-stack {
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
+            
+            nav {
+                border-bottom: 1px solid #e5e7eb; 
+                margin: 0 1rem; 
+            }
+            
+            .overflow-x-auto {
+                border-radius: 0 !important;
+                box-shadow: none !important;
+                border: none !important;
+                padding-left: 0; 
+                padding-right: 0;
+            }
         }
         
         /* ---------------------------------------------------------------- */
@@ -103,7 +204,6 @@
             body {
                 margin: 0;
                 padding: 0;
-                /* Define o tamanho da página A4 */
                 width: 210mm; 
                 min-height: 297mm;
             }
@@ -123,13 +223,19 @@
 
             /* Garante que a tabela use 100% da largura do A4 */
             .mock-table {
-                width: 100%;
+                width: 100% !important;
                 font-size: 10pt;
             }
             .mock-table th, .mock-table td {
-                padding: 4px; /* Reduz padding para caber mais */
+                padding: 4px; 
                 border-bottom: 1px solid #ccc;
                 border-right: 1px solid #ccc;
+                /* Permite a quebra de linha na impressão */
+                white-space: normal !important; 
+            }
+            /* Remove min-width para que caiba no papel */
+            .mock-table th, .mock-table td {
+                 min-width: auto !important;
             }
             .mock-table th:last-child, .mock-table td:last-child {
                 border-right: none;
@@ -180,15 +286,19 @@
         // --- Variáveis de Configuração ---
         const BACKEND_URL = "https://back-end-nfe.onrender.com";
         const USER_ID = "web-user-123";
-        // --- ALTERADO: Constante para pré-renderização (3000 linhas) ---
-        const CONTAGEM_MAX_ROWS = 3000;
         
-        // --- NOVO: Variável de estado para o modo de tabela ---
-        let isExpandedMode = false; // Estado inicial: Modo Scroll
-        
-        // --- Gerenciamento de Abas ---
+        // --- Gerenciamento de Abas e Modo de Visualização ---
         const tabButtons = document.querySelectorAll('.tab-button');
         const contentStack = document.getElementById('content-stack');
+        let currentTab = 'NOTA FISCAL'; 
+        
+        // Estado do Modo: True = Scroll Mode (Padrão), False = Expand Mode
+        let scrollModeActive = true; 
+        
+        // Ícones de Modo de Visualização
+        const scrollModeIcon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>`;
+        const expandModeIcon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-5v4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 0h-4m4 0l-5-5" /></svg>`;
+
 
         tabButtons.forEach(button => {
             button.addEventListener('click', () => switchTab(button.dataset.tab));
@@ -196,9 +306,10 @@
 
         /**
          * Altera a aba ativa e carrega o conteúdo.
-         * @param {string} sheetName O nome da aba (que é também o nome da planilha no Sheets).
          */
         function switchTab(sheetName) {
+            currentTab = sheetName; 
+            
             // 1. Atualiza o estilo dos botões
             tabButtons.forEach(btn => {
                 if (btn.dataset.tab === sheetName) {
@@ -226,18 +337,17 @@
             loadTabContent(sheetName);
         }
 
-        // ÍCONE DE DOCUMENTO (REPETIDO)
         const documentIcon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>`;
         const printerIcon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m-1-5a1 1 0 100-2 1 1 0 000 2zm10 0a1 1 0 100-2 1 1 0 000 2zm-4 4h4v2a2 2 0 01-2 2h-4a2 2 0 01-2-2v-2h4z" /></svg>`;
-        
-        // ÍCONES DE MODO
-        const expandIcon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M11.493 15.635a1.5 1.5 0 00-.012 2.115c.613.62 1.62.62 2.233 0l2.121-2.121a1.5 1.5 0 000-2.233l-.707-.707c-.613-.62-1.62-.62-2.233 0l-1.06 1.06zM3 4.25A1.25 1.25 0 014.25 3h11.5A1.25 1.25 0 0117 4.25v11.5A1.25 1.25 0 0115.75 17H4.25A1.25 1.25 0 013 15.75V4.25zm4 4a.75.75 0 011.5 0v3a.75.75 0 01-1.5 0v-3z" clip-rule="evenodd" /></svg>`;
-        const scrollIcon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 4.25A1.25 1.25 0 014.25 3h11.5A1.25 1.25 0 0117 4.25v11.5A1.25 1.25 0 0115.75 17H4.25A1.25 1.25 0 013 15.75V4.25zm4 4a.75.75 0 011.5 0v3a.75.75 0 01-1.5 0v-3z" clip-rule="evenodd" /></svg>`;
+
 
         /**
          * Retorna o HTML completo da aba NOTA FISCAL (botões + placeholder da tabela).
          */
         function renderNotaFiscalLayout() {
+            const modeText = scrollModeActive ? "Modo Expandido" : "Modo Scroll";
+            const modeIcon = scrollModeActive ? expandModeIcon : scrollModeIcon;
+            
             return `
                 <div class="flex flex-wrap gap-3 pb-4 mb-4 border-b border-gray-200 print-hidden">
                     <label for="xml-file-upload" class="flex items-center space-x-2 px-4 py-2 bg-gray-100 text-gray-800 rounded-lg shadow-sm hover:bg-gray-200 transition duration-150 cursor-pointer text-sm font-medium border border-gray-300">
@@ -251,20 +361,21 @@
                         <span>Importar por Chave de Acesso</span>
                     </button>
                     
-                    <button id="toggle-expand-button" onclick="toggleTableMode()" class="flex items-center space-x-2 px-4 py-2 bg-indigo-50 text-indigo-700 rounded-lg shadow-sm hover:bg-indigo-100 transition duration-150 text-sm font-medium border border-indigo-200">
-                        ${expandIcon}
-                        <span>Modo Expandido</span>
+                    <button id="toggle-scroll-btn-nf" onclick="toggleTableMode()" class="flex items-center space-x-2 px-4 py-2 bg-indigo-100 text-indigo-700 rounded-lg shadow-sm hover:bg-indigo-200 transition duration-150 text-sm font-medium border border-indigo-300">
+                        <span id="nf-toggle-icon-container">
+                            ${modeIcon}
+                        </span>
+                        <span id="nf-toggle-text-container">
+                            ${modeText}
+                        </span>
                     </button>
-                    <button id="toggle-scroll-button" onclick="toggleTableMode()" class="hidden flex items-center space-x-2 px-4 py-2 bg-indigo-50 text-indigo-700 rounded-lg shadow-sm hover:bg-indigo-100 transition duration-150 text-sm font-medium border border-indigo-200">
-                        ${scrollIcon}
-                        <span>Modo Scroll</span>
-                    </button>
+                    
                     <button onclick="confirmClearAllSheets()" class="flex items-center space-x-2 px-4 py-2 bg-red-50 text-red-700 rounded-lg shadow-sm hover:bg-red-100 transition duration-150 text-sm font-medium border border-red-200">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-2 0v6a1 1 0 102 0V7z" clip-rule="evenodd" /></svg>
                         <span>Apagar Dados</span>
                     </button>
                 </div>
-                <div id="dynamic-table-content" class="mock-table-container">
+                <div id="dynamic-table-content">
                     <p class="text-center text-gray-400 py-10">Use o botão de importação (XML) para carregar dados nesta aba.</p>
                 </div>
             `;
@@ -287,27 +398,32 @@
         }
         
         /**
-         * Retorna o HTML completo da aba CONFERENCIA (com botão de impressão).
+         * Retorna o HTML completo da aba CONFERENCIA (com botão de impressão e toggle).
          */
         function renderConferenciaLayout() {
+            const modeText = scrollModeActive ? "Modo Expandido" : "Modo Scroll";
+            const modeIcon = scrollModeActive ? expandModeIcon : scrollModeIcon;
+            
             return `
                 <div id="conferencia-content">
                     <div class="flex flex-wrap gap-3 pb-4 mb-4 border-b border-gray-200 print-hidden">
+                        
                         <button onclick="printConferencia()" class="flex items-center space-x-2 px-4 py-2 bg-blue-100 text-blue-700 rounded-lg shadow-sm hover:bg-blue-200 transition duration-150 text-sm font-medium border border-blue-300">
                             <span class="text-blue-600">${printerIcon}</span>
                             <span>Imprimir Conferência</span>
                         </button>
 
-                        <button id="toggle-expand-button-conf" onclick="toggleTableMode()" class="flex items-center space-x-2 px-4 py-2 bg-indigo-50 text-indigo-700 rounded-lg shadow-sm hover:bg-indigo-100 transition duration-150 text-sm font-medium border border-indigo-200">
-                            ${expandIcon}
-                            <span>Modo Expandido</span>
+                        <button id="toggle-scroll-btn-conf" onclick="toggleTableMode()" class="flex items-center space-x-2 px-4 py-2 bg-indigo-100 text-indigo-700 rounded-lg shadow-sm hover:bg-indigo-200 transition duration-150 text-sm font-medium border border-indigo-300">
+                            <span id="conf-toggle-icon-container">
+                                ${modeIcon}
+                            </span>
+                            <span id="conf-toggle-text-container">
+                                ${modeText}
+                            </span>
                         </button>
-                        <button id="toggle-scroll-button-conf" onclick="toggleTableMode()" class="hidden flex items-center space-x-2 px-4 py-2 bg-indigo-50 text-indigo-700 rounded-lg shadow-sm hover:bg-indigo-100 transition duration-150 text-sm font-medium border border-indigo-200">
-                            ${scrollIcon}
-                            <span>Modo Scroll</span>
-                        </button>
-                        </div>
-                    <div id="dynamic-table-content-conferencia" class="mock-table-container">
+
+                    </div>
+                    <div id="dynamic-table-content-conferencia">
                         <p class="text-center text-gray-400 py-10">Carregando dados...</p>
                     </div>
                 </div>
@@ -322,92 +438,22 @@
         }
 
         /**
-         * Renderiza a tabela da Contagem Loja com 3000 linhas pré-criadas.
-         */
-        function renderContagemTableWithPredefinedRows(data) {
-            const headers = ["Código de Barras"];
-            const sheetName = "CONTAGEM LOJA";
-            
-            let dataRows = data;
-            // Se a primeira linha contiver os cabeçalhos, pula ela
-            if (data.length > 0 && headers.length > 0 && String(data[0][0]) === headers[0]) {
-                dataRows = data.slice(1);
-            }
-            
-            let htmlBody = '';
-            
-            // O loop começa na Linha 2 do Sheets e vai até a linha 3001
-            for (let i = 0; i < CONTAGEM_MAX_ROWS; i++) {
-                const sheetRowIndex = i + 2; 
-                const sheetRange = `A${sheetRowIndex}`;
-                
-                // Pega o valor existente (se houver) ou deixa vazio
-                const cellValue = (dataRows[i] && dataRows[i][0] !== undefined) ? dataRows[i][0] : '';
-                
-                // Renderiza a linha com apenas uma célula editável
-                let rowHtml = `<tr data-row-index="${sheetRowIndex}">`;
-
-                // ATENÇÃO: Remove o onblur. O salvamento acontece APENAS no onkeydown (Enter).
-                const editAttributes = `contenteditable="true"
-                                        onkeydown="handleContagemKeyPress(event, '${sheetRange}', '${sheetName}')"
-                                        data-original-value="${cellValue}"
-                                        data-sheet-range="${sheetRange}"`;
-                
-                const cellClasses = 'cursor-text hover:bg-indigo-50/50 focus:bg-indigo-100 border border-transparent focus:border-indigo-400 transition';
-
-                rowHtml += `<td ${editAttributes} class="${cellClasses}">${cellValue}</td>`;
-                
-                // Adiciona colunas vazias se necessário
-                for (let j = 1; j < headers.length; j++) {
-                    rowHtml += `<td></td>`;
-                }
-                
-                rowHtml += `</tr>`;
-                htmlBody += rowHtml;
-            }
-
-
-             return `
-                 <div class="rounded-lg border border-gray-200 shadow-sm">
-                    <table class="mock-table w-full text-sm" id="contagem-table">
-                        <thead class="bg-gray-50 sticky top-0">
-                            <tr><th>${headers[0]}</th></tr>
-                        </thead>
-                        <tbody>
-                            ${htmlBody}
-                        </tbody>
-                    </table>
-                </div>
-             `;
-        }
-
-
-        /**
          * Renderiza os dados do Sheets em uma tabela HTML.
          */
         function renderTable(sheetName, data, headers, isEditable = false) {
             
-            if (sheetName === "CONTAGEM LOJA") {
-                // Chama a função com 3000 linhas pré-renderizadas
-                return renderContagemTableWithPredefinedRows(data);
-            }
-            
             if (!data || data.length === 0) {
+                if (sheetName === "CONTAGEM LOJA") {
+                     return renderEmptyContagemTable(sheetName, headers);
+                }
                 return `<p class="text-center text-gray-500 py-10">Nenhum dado encontrado no Google Sheets para esta aba.</p>`;
             }
 
-            // Define se a coluna "Status" (índice 5 da Conferência) deve ser editável
             const isStatusEditable = sheetName === "CONFERENCIA";
-            const modeClass = isExpandedMode ? 'expand-mode' : '';
-
-            let tableID = '';
-            if (sheetName === 'CONFERENCIA') {
-                tableID = 'conferencia-table';
-            }
-
+            
             let html = `
-                <div class="rounded-lg border border-gray-200 shadow-sm">
-                    <table class="mock-table w-full text-sm ${modeClass}" id="${tableID}">
+                <div class="rounded-lg border border-gray-200 overflow-x-auto shadow-sm">
+                    <table class="mock-table text-sm" id="${isEditable ? 'contagem-table' : (isStatusEditable ? 'conferencia-table' : '')}">
                         <thead class="bg-gray-50 sticky top-0">
                             <tr>`;
             
@@ -418,38 +464,41 @@
 
             let dataRows = data;
             
-            // Se a primeira linha contiver os cabeçalhos, pula ela na renderização dos dados
             if (data.length > 0 && headers.length > 0 && String(data[0][0]) === headers[0]) {
                 dataRows = data.slice(1);
             }
 
+            let lastRowIndexInSheet = 0;
+
             dataRows.forEach((row, rowIndex) => {
                 const isRowEmpty = row.length === 0 || row.every(cell => !cell || String(cell).trim() === '');
-                if (isRowEmpty) return; // Pula linhas totalmente vazias
+                if (isRowEmpty) return;
 
-                // Calcula o índice da linha no Sheets (baseado na linha 1)
                 const sheetRowIndex = (data[0][0] === headers[0] ? rowIndex + 2 : rowIndex + 1);
+                lastRowIndexInSheet = sheetRowIndex;
                 
                 html += `<tr data-row-index="${sheetRowIndex}">`;
                 
                 for (let i = 0; i < headers.length; i++) {
                     const cellValue = row[i] !== undefined ? row[i] : '';
                     
-                    // Mapeia o índice i (0=A, 1=B, etc.) para a letra da coluna
                     const sheetCol = String.fromCharCode(65 + i);
                     const sheetRange = `${sheetCol}${sheetRowIndex}`;
 
                     let editAttributes = '';
                     let cellClasses = '';
 
-                    // Apenas a coluna 'OBS' (índice 5) é editável na Conferência
-                    const isCellEditable = (isStatusEditable && i === 5); 
+                    const isCellEditable = (isEditable && i === 0) || (isStatusEditable && i === 5);
 
                     if (isCellEditable) {
                         editAttributes = `contenteditable="true"
                                          onblur="handleCellEdit(this, '${sheetRange}', '${sheetName}')"
                                          data-original-value="${cellValue}"
                                          data-sheet-range="${sheetRange}"`;
+
+                        if (sheetName === "CONTAGEM LOJA") {
+                            editAttributes += `onkeydown="handleContagemKeyPress(event, '${sheetRange}', '${sheetName}')"`;
+                        }
                         
                         cellClasses = 'cursor-text hover:bg-indigo-50/50 focus:bg-indigo-100 border border-transparent focus:border-indigo-400 transition';
                     }
@@ -459,10 +508,71 @@
                 html += `</tr>`;
             });
             
+            if (isEditable && sheetName === "CONTAGEM LOJA") {
+                const nextRowIndex = lastRowIndexInSheet + 1;
+                
+                if (lastRowIndexInSheet !== 0) {
+                    html += renderEditableRow(sheetName, headers, nextRowIndex);
+                } else {
+                    // Se estiver vazio, renderiza a linha inicial A2
+                    html += renderEditableRow(sheetName, headers, 2);
+                }
+            }
+
             html += `</tbody></table></div>`;
             return html;
         }
-        
+
+        /**
+         * Renderiza a linha editável vazia para começar a contagem.
+         */
+        function renderEmptyContagemTable(sheetName, headers) {
+             const startRowIndex = 2;
+
+             const firstEditableRow = renderEditableRow(sheetName, headers, startRowIndex);
+             
+             return `
+                 <div class="rounded-lg border border-gray-200 overflow-x-auto shadow-sm">
+                    <table class="mock-table text-sm" id="contagem-table">
+                        <thead class="bg-gray-50 sticky top-0">
+                            <tr><th>${headers[0]}</th></tr>
+                        </thead>
+                        <tbody>
+                            ${firstEditableRow}
+                        </tbody>
+                    </table>
+                </div>
+             `;
+        }
+
+        /**
+         * Renderiza uma linha vazia com a primeira célula editável (usada apenas pela Contagem Loja).
+         */
+        function renderEditableRow(sheetName, headers, sheetRowIndex) {
+            let html = `<tr data-row-index="${sheetRowIndex}">`;
+            
+            const sheetCol = 'A';
+            const sheetRange = `${sheetCol}${sheetRowIndex}`;
+            
+            const editAttributes = `contenteditable="true"
+                                    onblur="handleCellEdit(this, '${sheetRange}', '${sheetName}')"
+                                    onkeydown="handleContagemKeyPress(event, '${sheetRange}', '${sheetName}')"
+                                    data-original-value=""
+                                    data-sheet-range="${sheetRange}"`;
+            
+            const cellClasses = 'cursor-text hover:bg-indigo-50/50 focus:bg-indigo-100 border border-transparent focus:border-indigo-400 transition';
+
+            html += `<td ${editAttributes} class="${cellClasses}"></td>`;
+            
+            for (let i = 1; i < headers.length; i++) {
+                html += `<td></td>`;
+            }
+            
+            html += `</tr>`;
+            return html;
+        }
+
+
         /**
          * Gerencia a busca de dados e a renderização do conteúdo da aba.
          */
@@ -476,12 +586,11 @@
             if (sheetName === "NOTA FISCAL") {
                 headers = ["Descrição", "Quantidade", "Código de Barras", "Item"];
             } else if (sheetName === "CONTAGEM LOJA") {
-                // Apenas um cabeçalho é necessário para a entrada do usuário
                 headers = ["Código de Barras"]; 
                 targetElementId = 'dynamic-table-content-contagem';
                 isEditable = true;
             } else if (sheetName === "CONFERENCIA") {
-                headers = ["Código de Barras", "Descrição do Produto", "Quantidade NF", "Contagem Loja", "Diferença", "OBS"];
+                headers = ["Código de Barras", "Descrição do Produto", "Quantidade NF", "Contagem Loja", "Diferença", "Status"];
                 targetElementId = 'dynamic-table-content-conferencia';
             }
 
@@ -489,125 +598,111 @@
             if (targetElement) {
                 targetElement.innerHTML = renderTable(sheetName, data, headers, isEditable);
                 
+                // --- Aplica o modo de visualização correto após a renderização ---
+                if (sheetName === "NOTA FISCAL" || sheetName === "CONFERENCIA") {
+                     setTimeout(updateTableModeDisplay, 0); 
+                }
+                
                 // --- Aplica estilos condicionais após a renderização ---
                 if (sheetName === "CONFERENCIA") {
-                    // Espera o DOM ser atualizado antes de aplicar os estilos
                     setTimeout(() => {
                         applyConferenciaStyles(headers.length);
                     }, 0);
                 }
                 
-                // --- Foca a primeira célula editável da Contagem Loja ---
-                if (sheetName === "CONTAGEM LOJA") {
-                    const firstCell = document.querySelector('td[data-sheet-range="A2"]');
-                    if (firstCell) {
-                        setTimeout(() => {
-                            focusAndPlaceCursor(firstCell); // Garante o foco inicial
-                        }, 100);
-                    }
-                }
-                
-                // --- NOVO: Atualiza a visibilidade dos botões de Toggle ---
-                if (sheetName === "NOTA FISCAL" || sheetName === "CONFERENCIA") {
-                    updateToggleButtons();
-                }
-                
             } else if (sheetName !== "NOTA FISCAL" && sheetName !== "CONTAGEM LOJA") {
-                // Caso seja CONFERENCIA (ou outra aba sem layout pré-definido)
                 contentStack.innerHTML = `
                     <div id="${sheetName.toLowerCase()}-content">
                         ${renderTable(sheetName, data, headers, isEditable)}
                     </div>
                 `;
-                // --- Aplica estilos condicionais após a renderização ---
                 if (sheetName === "CONFERENCIA") {
+                     setTimeout(updateTableModeDisplay, 0); 
                     setTimeout(() => {
                         applyConferenciaStyles(headers.length);
                     }, 0);
                 }
             }
         }
-        
+
         /**
-         * Alterna entre o modo Scroll (padrão) e o modo Expandido.
+         * Alterna entre o modo Scroll Horizontal e o modo Expandido.
          */
         function toggleTableMode() {
-            isExpandedMode = !isExpandedMode;
-            
-            // 1. Aplica/Remove a classe à tabela da aba NOTA FISCAL
-            const tableNf = document.querySelector('#dynamic-table-content .mock-table');
-            if (tableNf) {
-                if (isExpandedMode) {
-                    tableNf.classList.add('expand-mode');
-                } else {
-                    tableNf.classList.remove('expand-mode');
-                }
-            }
-            
-            // 2. Aplica/Remove a classe à tabela da aba CONFERENCIA
-            const tableConf = document.querySelector('#dynamic-table-content-conferencia .mock-table');
-            if (tableConf) {
-                if (isExpandedMode) {
-                    tableConf.classList.add('expand-mode');
-                } else {
-                    tableConf.classList.remove('expand-mode');
-                }
-            }
-
-            // 3. Atualiza o texto/visibilidade dos botões de Toggle
-            updateToggleButtons();
+            scrollModeActive = !scrollModeActive;
+            updateTableModeDisplay();
         }
-        
+
         /**
-         * Atualiza o texto/visibilidade dos botões Toggle.
+         * Aplica as classes CSS e atualiza o botão de acordo com o estado atual (scrollModeActive).
          */
-        function updateToggleButtons() {
-            // Botões da Nota Fiscal
-            const expandButton = document.getElementById('toggle-expand-button');
-            const scrollButton = document.getElementById('toggle-scroll-button');
+        function updateTableModeDisplay() {
+            let tableSelector = '';
+            let toggleIconId = '';
+            let toggleTextId = '';
+
+            // 1. Determina os IDs corretos para a aba ativa
+            if (currentTab === "NOTA FISCAL") {
+                tableSelector = '#dynamic-table-content .mock-table';
+                toggleIconId = 'nf-toggle-icon-container';
+                toggleTextId = 'nf-toggle-text-container';
+            } else if (currentTab === "CONFERENCIA") {
+                tableSelector = '#dynamic-table-content-conferencia .mock-table';
+                toggleIconId = 'conf-toggle-icon-container';
+                toggleTextId = 'conf-toggle-text-container';
+            } else {
+                return; 
+            }
+
+            const table = document.querySelector(tableSelector);
+            const toggleIconContainer = document.getElementById(toggleIconId);
+            const toggleTextContainer = document.getElementById(toggleTextId);
             
-            // Botões da Conferência
-            const expandButtonConf = document.getElementById('toggle-expand-button-conf');
-            const scrollButtonConf = document.getElementById('toggle-scroll-button-conf');
+            if (!table || !toggleIconContainer || !toggleTextContainer) {
+                return;
+            }
+            
+            const scrollContainer = table.parentElement; 
+            
+            if (scrollModeActive) {
+                // Modo SCROLL (Pronto para rolar)
+                table.classList.remove('expand-mode');
+                scrollContainer.classList.remove('overflow-x-hidden'); 
+                scrollContainer.classList.add('overflow-x-auto');
 
-            const elements = [
-                { exp: expandButton, scr: scrollButton },
-                { exp: expandButtonConf, scr: scrollButtonConf }
-            ];
+                // Atualiza o botão para indicar a próxima ação (Expandir)
+                toggleIconContainer.innerHTML = expandModeIcon; 
+                toggleTextContainer.textContent = "Modo Expandido";
+                
+            } else {
+                // Modo EXPANDIDO (Ocupa 100%, quebra texto)
+                table.classList.add('expand-mode');
+                scrollContainer.classList.remove('overflow-x-auto'); 
+                scrollContainer.classList.add('overflow-x-hidden'); 
 
-            elements.forEach(btns => {
-                if (btns.exp && btns.scr) {
-                    if (isExpandedMode) {
-                        btns.exp.classList.add('hidden');
-                        btns.scr.classList.remove('hidden');
-                    } else {
-                        btns.exp.classList.remove('hidden');
-                        btns.scr.classList.add('hidden');
-                    }
-                }
-            });
+                // Atualiza o botão para indicar a próxima ação (Rolar)
+                toggleIconContainer.innerHTML = scrollModeIcon; 
+                toggleTextContainer.textContent = "Modo Scroll";
+            }
         }
+
         
         /**
          * Aplica formatação condicional à coluna Diferença (E) na aba CONFERENCIA.
          */
         function applyConferenciaStyles(numCols) {
-            // A coluna 'Diferença' é a 5ª coluna (nth-child(5)) da tabela
             const rows = document.querySelectorAll('#conferencia-content .mock-table tbody tr');
 
             rows.forEach(row => {
                 const diffCell = row.querySelector('td:nth-child(5)');
                 if (!diffCell) return;
 
-                // Tenta converter o conteúdo da célula para número (substituindo vírgula por ponto para o parse)
                 let value = parseFloat(diffCell.textContent.replace(',', '.').trim());
                 
-                // Remove quaisquer classes de cor existentes
                 diffCell.classList.remove('bg-fee2e2', 'text-b91c1c', 'bg-green-100', 'text-green-700');
 
                 if (isNaN(value) || value === 0) {
-                    // Valor Zero ou Vazio (Neutro - sem cor)
-                    // Não adiciona classes de cor.
+                    // Valor Zero ou Vazio (Neutro)
                 } else if (value < 0) {
                     // Regra Vermelha (Negativo)
                     diffCell.classList.add('bg-fee2e2', 'text-b91c1c');
@@ -617,73 +712,46 @@
                 }
             });
         }
-        
-        /**
-         * Foca um elemento contenteditable, limpa o seu conteúdo 
-         * e força o cursor a ser posicionado corretamente no início.
-         */
-        function focusAndPlaceCursor(element) {
-            // 1. Limpa o valor e foca
-            element.textContent = ''; 
-            element.dataset.originalValue = '';
-            element.focus();
-
-            // 2. Tenta forçar o cursor a ficar no início do elemento
-            try {
-                if (window.getSelection && document.createRange) {
-                    const range = document.createRange();
-                    range.selectNodeContents(element);
-                    range.collapse(false); // Move o cursor para o final (que é o início se a célula estiver vazia)
-                    const selection = window.getSelection();
-                    selection.removeAllRanges();
-                    selection.addRange(range);
-                }
-            } catch (e) {
-                // Fallback para dispositivos onde a API de seleção não é ideal
-                console.error("Erro ao tentar posicionar o cursor, usando foco simples.", e);
-            }
-        }
 
 
-        /**
-         * Lida com a tecla pressionada na célula da Contagem Loja (Enter).
-         */
-        async function handleContagemKeyPress(event, sheetRange, sheetName) {
+        // --- Funções de API e Utilitários (Não Alteradas) ---
+
+        function handleContagemKeyPress(event, sheetRange, sheetName) {
             if (event.keyCode === 13) {
                 event.preventDefault();
                 
                 const element = event.target;
-                
-                // 1. Salva a edição na célula atual (AGUARDA a conclusão da requisição)
-                await handleCellEdit(element, sheetRange, sheetName); 
-                
-                // Força o elemento atual a perder o foco.
-                element.blur(); 
+                handleCellEdit(element, sheetRange, sheetName);
 
                 const currentRow = parseInt(sheetRange.slice(1));
                 const nextRow = currentRow + 1;
                 const nextRange = `A${nextRow}`;
 
-                let nextCell = document.querySelector(`td[data-sheet-range="${nextRange}"]`);
+                const nextCell = document.querySelector(`td[data-sheet-range="${nextRange}"]`);
                 
-                // 2. Tenta pular para a próxima célula/linha (agora pré-renderizada)
                 if (nextCell) {
-                    // Usamos um timeout de 0 para garantir que o blur() tenha sido completamente processado
-                    setTimeout(() => {
-                        focusAndPlaceCursor(nextCell); 
-                    }, 0);
-                } else if (nextRow > CONTAGEM_MAX_ROWS + 1) { // Linha 3002 (3000 linhas + header)
-                    showNotification("Limite de 3000 contagens atingido. Limpe os dados da aba NOTA FISCAL para recomeçar.", 'warning', 8000);
+                    nextCell.textContent = '';
+                    nextCell.dataset.originalValue = '';
+                    nextCell.focus();
                 } else {
-                    // Se a célula não foi encontrada (o que não deve acontecer, pois foram pré-renderizadas)
-                    console.error(`Célula seguinte (${nextRange}) não encontrada.`);
+                    const tableBody = document.querySelector('#contagem-table tbody');
+                    if (tableBody) {
+                        const placeholderRows = tableBody.querySelectorAll('tr[data-placeholder="true"]');
+                        placeholderRows.forEach(row => row.remove());
+                        
+                        const headers = ["Código de Barras"];
+                        const newRowHtml = renderEditableRow(sheetName, headers, nextRow);
+                        tableBody.insertAdjacentHTML('beforeend', newRowHtml);
+                        
+                        const newCell = document.querySelector(`td[data-sheet-range="${nextRange}"]`);
+                        if (newCell) {
+                            newCell.focus();
+                        }
+                    }
                 }
             }
         }
-        
-        /**
-         * Busca dados da aba especificada no backend Go.
-         */
+
         async function fetchSheetData(sheetName) {
             showNotification(`Buscando dados da aba '${sheetName}'...`, 'loading');
             
@@ -711,19 +779,87 @@
                 return [];
             }
         }
+        
+        async function importXMLData(xmlContent) {
+            if (!xmlContent || xmlContent.trim().length < 100) {
+                showNotification("Conteúdo XML vazio ou inválido para importação.", 'warning');
+                return;
+            }
 
-        /**
-         * Lida com a edição de uma célula e envia a atualização para o backend Go.
-         */
+            showNotification("Enviando XML para o backend Go...", 'loading');
+
+            try {
+                const response = await fetch(`${BACKEND_URL}/import-xml-data`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ xml_content: xmlContent, user_id: USER_ID })
+                });
+
+                const result = await response.json();
+                hideNotification();
+
+                if (!response.ok || result.error) {
+                    showNotification(`Falha na Importação: ${result.error || 'Erro desconhecido do servidor.'}`, 'error');
+                } else {
+                    showNotification(result.message, 'success');
+                    switchTab("NOTA FISCAL");
+                }
+
+            } catch (error) {
+                hideNotification();
+                console.error("Erro de Rede:", error);
+                showNotification("Erro de Rede ao tentar conectar com o servidor Go. Verifique se ele está rodando em https://back-end-nfe.onrender.com", 'error');
+            }
+        }
+
+        async function importarXMLPorChave() {
+            const chaveInput = document.getElementById("chave-acesso-input");
+            if (!chaveInput) {
+                showNotification("Campo de chave não encontrado.", "error");
+                return;
+            }
+            const chaveAcesso = chaveInput.value.trim();
+
+            if (!chaveAcesso || chaveAcesso.length !== 44) {
+                showNotification("Chave de acesso inválida. Deve conter 44 dígitos.", "warning");
+                return;
+            }
+
+            showNotification("Importando XML pela chave de acesso...", "loading");
+
+            try {
+                const response = await fetch(`${BACKEND_URL}/importar-xml-chave`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ chaveAcesso })
+                });
+
+                const result = await response.json();
+                hideNotification();
+
+                if (!response.ok || result.error) {
+                    showNotification(`Erro: ${result.error || 'Falha desconhecida ao importar XML.'}`, "error");
+                } else {
+                    showNotification(result.message, "success");
+                    chaveInput.value = '';
+                    hidePasteModal();
+                    switchTab("NOTA FISCAL");
+                }
+            } catch (error) {
+                hideNotification();
+                console.error("Erro ao importar XML por chave:", error);
+                showNotification("Erro de rede ao tentar importar XML pela chave.", "error");
+            }
+        }
+
         async function handleCellEdit(element, sheetRange, sheetName) {
             const newValue = element.textContent.trim();
             const originalValue = element.dataset.originalValue;
 
             if (newValue === originalValue) {
-                return; // Não houve alteração
+                return;
             }
 
-            // Exibir status de salvamento (opcional, mas bom para feedback)
             element.classList.add('saving-status'); 
 
             try {
@@ -739,58 +875,41 @@
 
                 if (!response.ok || result.error) {
                     showNotification(`Erro ao salvar ${sheetRange}: ${result.error || 'Erro de servidor.'}`, 'error');
-                    element.textContent = originalValue; // Reverte para o valor original
+                    element.textContent = originalValue;
                 } else {
-                    // Atualiza o valor original para o novo valor salvo
                     element.dataset.originalValue = newValue;
-                    // Se for contagem loja, não mostra notificação no meio do escaneamento para não atrapalhar
-                    if (sheetName !== 'CONTAGEM LOJA') {
-                        showNotification(`Célula ${sheetRange} atualizada com sucesso para '${newValue}'.`, 'success', 2000);
-                    }
+                    showNotification(`Célula ${sheetRange} atualizada com sucesso para '${newValue}'.`, 'success', 2000);
                 }
-                
-                return { success: response.ok };
 
             } catch (error) {
                 element.classList.remove('saving-status');
                 console.error("Erro na comunicação para atualizar célula:", error);
                 showNotification(`Erro de Rede ao tentar atualizar ${sheetRange}.`, 'error');
-                element.textContent = originalValue; // Reverte
-                return { success: false };
+                element.textContent = originalValue;
             }
         }
-        
-        // --- Lógica de Limpeza Múltipla de Dados com Configurações ---
 
-        // CONFIGURAÇÃO ALTERADA: Inclui a limpeza da coluna 'F' (OBS) da aba CONFERENCIA
+        
         const sheetsConfig = [
-            { name: "NOTA FISCAL", range: 'A2:Z' },         // Limpa tudo da linha 2 em diante
-            { name: "CONTAGEM LOJA", range: 'A2:Z' },       // Limpa tudo da linha 2 em diante
-            { name: "CONFERENCIA", range: 'F2:F' },         // Limpa apenas a coluna F (OBS) da Conferência
+            { name: "NOTA FISCAL", range: 'A2:Z' },
+            { name: "CONTAGEM LOJA", range: 'A2:Z' },
         ];
 
-        /**
-         * Confirmação e chamada para limpar TODAS as planilhas.
-         */
         function confirmClearAllSheets() {
-            const confirmationMessage = "ATENÇÃO: Você tem certeza que deseja APAGAR TODOS os dados de entrada (NOTA FISCAL e CONTAGEM LOJA) e as OBSERVAÇÕES da CONFERÊNCIA? Os dados serão atualizados automaticamente após a limpeza.";
+            const confirmationMessage = "ATENÇÃO: Você tem certeza que deseja APAGAR TODOS os dados de entrada? Os dados serão atualizados automaticamente após a limpeza.";
             
             if (confirm(confirmationMessage)) {
                 clearMultipleSheets();
             }
         }
 
-        /**
-         * Envia os comandos de limpeza de dados para TODAS as abas configuradas.
-         */
         async function clearMultipleSheets() {
-            showNotification(`Iniciando limpeza em lote dos dados de entrada e da OBS da Conferência...`, 'loading', 30000); // 30s max load
+            showNotification(`Iniciando limpeza em lote das ${sheetsConfig.length} abas de entrada...`, 'loading', 30000);
 
             let successCount = 0;
             let errorCount = 0;
 
             for (const config of sheetsConfig) {
-                // Passa o nome da aba e o range específico
                 const result = await clearSheetData(config.name, config.range, false); 
                 if (result.success) {
                     successCount++;
@@ -800,21 +919,17 @@
                 }
             }
 
-            hideNotification(); // Remove a notificação de 'loading'
+            hideNotification();
 
             if (errorCount === 0) {
-                showNotification(`Limpeza global concluída! Os dados de entrada e as OBS foram limpos. As fórmulas foram preservadas.`, 'success', 5000);
+                showNotification(`Limpeza global concluída! ${successCount} abas de entrada limpas com sucesso. As fórmulas da Conferência foram preservadas.`, 'success', 5000);
             } else {
                  showNotification(`Limpeza global concluída com ${errorCount} erro(s). Verifique o console.`, 'warning', 8000);
             }
 
-            // Recarrega a aba NOTA FISCAL (padrão) para refletir o estado vazio
             switchTab('NOTA FISCAL'); 
         }
 
-        /**
-         * Envia o comando de limpeza de dados para o backend Go.
-         */
         async function clearSheetData(sheetName, range, showNotificationOnSuccess = true) {
             if (showNotificationOnSuccess) {
                 showNotification(`Limpando dados da aba '${sheetName}' (Range: ${range})...`, 'loading');
@@ -860,6 +975,10 @@
 
         function showPasteModal() {
             document.getElementById('paste-modal').classList.remove('hidden');
+            const chaveInput = document.getElementById("chave-acesso-input");
+            if (chaveInput) {
+                chaveInput.focus();
+            }
         }
 
         function hidePasteModal() {
@@ -927,87 +1046,24 @@
             reader.readAsText(file);
         }
 
-        async function importXMLData(xmlContent) {
-            if (!xmlContent || xmlContent.trim().length < 100) {
-                showNotification("Conteúdo XML vazio ou inválido para importação.", 'warning');
-                return;
-            }
-
-            showNotification("Enviando XML para o backend Go...", 'loading');
-
-            try {
-                const response = await fetch(`${BACKEND_URL}/import-xml-data`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ xml_content: xmlContent, user_id: USER_ID })
-                });
-
-                const result = await response.json();
-                hideNotification();
-
-                if (!response.ok || result.error) {
-                    showNotification(`Falha na Importação: ${result.error || 'Erro desconhecido do servidor.'}`, 'error');
-                } else {
-                    showNotification(result.message, 'success');
-                    switchTab("NOTA FISCAL");
-                }
-
-            } catch (error) {
-                hideNotification();
-                console.error("Erro de Rede:", error);
-                showNotification("Erro de Rede ao tentar conectar com o servidor Go. Verifique se ele está rodando em https://back-end-nfe.onrender.com", 'error');
-            }
-        }
-
-        async function importarXMLPorChave() {
-            const chaveInput = document.getElementById("chave-acesso-input");
-            if (!chaveInput) {
-                showNotification("Campo de chave não encontrado.", "error");
-                return;
-            }
-            const chaveAcesso = chaveInput.value.trim();
-
-            if (!chaveAcesso || chaveAcesso.length !== 44) {
-                showNotification("Chave de acesso inválida. Deve conter 44 dígitos.", "warning");
-                return;
-            }
-
-            showNotification("Importando XML pela chave de acesso...", "loading");
-
-            try {
-                const response = await fetch(`${BACKEND_URL}/importar-xml-chave`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ chaveAcesso })
-                });
-
-                const result = await response.json();
-                hideNotification();
-
-                if (!response.ok || result.error) {
-                    showNotification(`Erro: ${result.error || 'Falha desconhecida ao importar XML.'}`, "error");
-                } else {
-                    showNotification(result.message, "success");
-                    hidePasteModal();
-                    // Recarrega a aba para mostrar os novos dados inseridos
-                    switchTab("NOTA FISCAL");
-                }
-            } catch (error) {
-                hideNotification();
-                console.error("Erro ao importar XML por chave:", error);
-                showNotification("Erro de rede ao tentar importar XML pela chave.", "error");
-            }
-        }
-
         // --- Inicialização ---
 
         document.addEventListener('DOMContentLoaded', () => {
             if (typeof window.handleCellEdit !== 'function') {
                 window.handleCellEdit = async function(element, sheetRange, sheetName) {
-                    // Implementação de fallback
-                    return { success: true };
                 }
             }
+            
+            const chaveInput = document.getElementById("chave-acesso-input");
+            if (chaveInput) {
+                chaveInput.addEventListener('keydown', function(event) {
+                    if (event.key === 'Enter') {
+                        event.preventDefault(); 
+                        importarXMLPorChave(); 
+                    }
+                });
+            }
+
             switchTab('NOTA FISCAL'); 
         });
 
