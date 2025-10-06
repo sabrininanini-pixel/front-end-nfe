@@ -316,7 +316,7 @@
                     </button>
 
                     <button onclick="confirmClearAllSheets()" class="flex items-center space-x-2 px-4 py-2 bg-red-50 text-red-700 rounded-lg shadow-sm hover:bg-red-100 transition duration-150 text-sm font-medium border border-red-200">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-2 0v6a1 1 0 102 0V7z" clip-rule="evenodd" /></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-2 0v6a1 1 102 0V7z" clip-rule="evenodd" /></svg>
                         <span>Apagar Dados</span>
                     </button>
                 </div>
@@ -486,6 +486,7 @@
                 const nextRowIndex = lastRowIndexInSheet + 1;
                 
                 if (lastRowIndexInSheet !== 0) {
+                    // A tabela já tem conteúdo, então adicionamos a próxima linha para inserção.
                     html += renderEditableRow(sheetName, headers, nextRowIndex, true);
                 }
             }
@@ -527,7 +528,7 @@
             const sheetCol = 'A'; // Primeira coluna
             const sheetRange = `${sheetCol}${sheetRowIndex}`;
             
-            // AJUSTE: onblur removido aqui também
+            // onblur removido
             const editAttributes = `contenteditable="true"
                                     onkeydown="handleContagemKeyPress(event, '${sheetRange}', '${sheetName}')"
                                     data-original-value=""
@@ -670,7 +671,7 @@
                         cell.classList.remove('expand-mode-cell');
 
                         if (sheetName === 'CONFERENCIA') {
-                            // Coluna 1 (Código de Barras) é 140px (AJUSTE)
+                            // Coluna 1 (Código de Barras) é 140px
                             if (colIndex === 1) {
                                 cell.classList.add(scrollClassCode); 
                             } 
@@ -688,7 +689,7 @@
                             // Coluna 2 (Quantidade) e 4 (Item) são 70px
                             if (colIndex === 2 || colIndex === 4) {
                                 cell.classList.add(scrollClassNumeric);
-                            // Coluna 3 (Código de Barras) é 140px (AJUSTE)
+                            // Coluna 3 (Código de Barras) é 140px
                             } else if (colIndex === 3) {
                                 cell.classList.add(scrollClassCode); 
                             } else { // Coluna 1 (Descrição)
@@ -712,6 +713,7 @@
 
         /**
          * Lida com a tecla pressionada na célula da Contagem Loja (Enter).
+         * AJUSTE CRÍTICO: Uso de setTimeout para garantir que o focus seja aplicado APÓS a renderização do DOM.
          */
         function handleContagemKeyPress(event, sheetRange, sheetName) {
             if (event.keyCode === 13) {
@@ -729,27 +731,39 @@
                 
                 // 2. Tenta pular para a próxima célula/linha
                 if (nextCell) {
-                    // A célula A(N+1) existe. Limpa e foca.
-                    nextCell.textContent = ''; // Limpa para a próxima contagem
-                    nextCell.dataset.originalValue = ''; // Força o save
-                    nextCell.focus();
+                    // A célula A(N+1) existe no DOM. Limpa e foca.
+                    nextCell.textContent = ''; 
+                    nextCell.dataset.originalValue = '';
+                    // AJUSTE: Usa setTimeout para garantir que o foco seja aplicado após o processamento do evento.
+                    setTimeout(() => nextCell.focus(), 0);
                 } else {
                     // A célula A(N+1) não existe. Precisa criar nova linha.
                     const tableBody = document.querySelector('#contagem-table tbody');
                     if (tableBody) {
-                        // Remove qualquer linha de "placeholder" que possa ter sido renderizada antes (redundância de segurança)
-                        const placeholderRows = tableBody.querySelectorAll('tr[data-placeholder="true"]');
-                        placeholderRows.forEach(row => row.remove());
                         
-                        // Renderiza e insere a nova linha editável no final da tabela
-                        const headers = ["Código de Barras"]; // Apenas o header necessário
+                        // Renderiza o HTML da nova linha
+                        const headers = ["Código de Barras"];
                         const newRowHtml = renderEditableRow(sheetName, headers, nextRow);
-                        tableBody.insertAdjacentHTML('beforeend', newRowHtml);
                         
-                        // Foca na nova célula (que já está vazia)
-                        const newCell = document.querySelector(`td[data-sheet-range="${nextRange}"]`);
-                        if (newCell) {
-                            newCell.focus();
+                        // Cria um elemento temporário para parsear o HTML da linha
+                        const tempDiv = document.createElement('div');
+                        tempDiv.innerHTML = newRowHtml.trim();
+                        const newRow = tempDiv.firstChild;
+                        
+                        // Insere a nova linha na tabela
+                        tableBody.appendChild(newRow);
+                        
+                        // Obtém a nova célula (td) dentro da linha recém-criada
+                        nextCell = newRow.querySelector(`td[data-sheet-range="${nextRange}"]`);
+                        
+                        if (nextCell) {
+                            // AJUSTE CRÍTICO: Usa setTimeout para garantir que o foco seja aplicado após o processamento do DOM.
+                            setTimeout(() => {
+                                nextCell.focus();
+                                // Limpa o conteúdo (mesmo que a função de render já crie vazio)
+                                nextCell.textContent = ''; 
+                                nextCell.dataset.originalValue = '';
+                            }, 0);
                         }
                     }
                 }
