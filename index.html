@@ -31,6 +31,36 @@
         }
 
         /* ---------------------------------------------------------------- */
+        /* --- Estilos para Modo Scroll (Padrão) e Modo Expandido --- */
+        /* ---------------------------------------------------------------- */
+        
+        /* Configuração Padrão (Modo Scroll) */
+        .mock-table-container {
+            overflow-x: auto; /* Garante o scroll horizontal no contêiner */
+        }
+        
+        .mock-table {
+            width: max-content !important; /* Força a tabela a ser tão larga quanto o conteúdo */
+        }
+        .mock-table th, .mock-table td {
+            white-space: nowrap; /* Força o conteúdo a ficar em uma linha */
+            text-overflow: clip; 
+            overflow: visible; 
+        }
+        
+        /* Modo Expandido */
+        .mock-table.expand-mode {
+            width: 100% !important; /* Força a tabela a ocupar a largura do contêiner */
+            table-layout: auto; /* Permite que o navegador ajuste o tamanho das colunas */
+        }
+        .mock-table.expand-mode th, 
+        .mock-table.expand-mode td {
+            white-space: normal !important; /* Permite a quebra de linha */
+            word-break: break-word; /* Garante que o texto longo sem espaço quebre */
+        }
+
+
+        /* ---------------------------------------------------------------- */
         /* --- Estilos de Edição/Conferência --- */
         /* ---------------------------------------------------------------- */
         
@@ -48,9 +78,8 @@
              width: 100px; /* Largura fixa para ambas */
              min-width: 100px;
              max-width: 100px;
-             overflow: hidden;
-             text-overflow: ellipsis;
-             white-space: nowrap;
+             /* Preserva a quebra de texto apenas para esta coluna no modo Scroll */
+             white-space: normal; 
         }
 
 
@@ -154,6 +183,9 @@
         // --- ALTERADO: Constante para pré-renderização (3000 linhas) ---
         const CONTAGEM_MAX_ROWS = 3000;
         
+        // --- NOVO: Variável de estado para o modo de tabela ---
+        let isExpandedMode = false; // Estado inicial: Modo Scroll
+        
         // --- Gerenciamento de Abas ---
         const tabButtons = document.querySelectorAll('.tab-button');
         const contentStack = document.getElementById('content-stack');
@@ -197,7 +229,10 @@
         // ÍCONE DE DOCUMENTO (REPETIDO)
         const documentIcon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>`;
         const printerIcon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m-1-5a1 1 0 100-2 1 1 0 000 2zm10 0a1 1 0 100-2 1 1 0 000 2zm-4 4h4v2a2 2 0 01-2 2h-4a2 2 0 01-2-2v-2h4z" /></svg>`;
-
+        
+        // ÍCONES DE MODO
+        const expandIcon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M11.493 15.635a1.5 1.5 0 00-.012 2.115c.613.62 1.62.62 2.233 0l2.121-2.121a1.5 1.5 0 000-2.233l-.707-.707c-.613-.62-1.62-.62-2.233 0l-1.06 1.06zM3 4.25A1.25 1.25 0 014.25 3h11.5A1.25 1.25 0 0117 4.25v11.5A1.25 1.25 0 0115.75 17H4.25A1.25 1.25 0 013 15.75V4.25zm4 4a.75.75 0 011.5 0v3a.75.75 0 01-1.5 0v-3z" clip-rule="evenodd" /></svg>`;
+        const scrollIcon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 4.25A1.25 1.25 0 014.25 3h11.5A1.25 1.25 0 0117 4.25v11.5A1.25 1.25 0 0115.75 17H4.25A1.25 1.25 0 013 15.75V4.25zm4 4a.75.75 0 011.5 0v3a.75.75 0 01-1.5 0v-3z" clip-rule="evenodd" /></svg>`;
 
         /**
          * Retorna o HTML completo da aba NOTA FISCAL (botões + placeholder da tabela).
@@ -216,12 +251,20 @@
                         <span>Importar por Chave de Acesso</span>
                     </button>
                     
+                    <button id="toggle-expand-button" onclick="toggleTableMode()" class="flex items-center space-x-2 px-4 py-2 bg-indigo-50 text-indigo-700 rounded-lg shadow-sm hover:bg-indigo-100 transition duration-150 text-sm font-medium border border-indigo-200">
+                        ${expandIcon}
+                        <span>Modo Expandido</span>
+                    </button>
+                    <button id="toggle-scroll-button" onclick="toggleTableMode()" class="hidden flex items-center space-x-2 px-4 py-2 bg-indigo-50 text-indigo-700 rounded-lg shadow-sm hover:bg-indigo-100 transition duration-150 text-sm font-medium border border-indigo-200">
+                        ${scrollIcon}
+                        <span>Modo Scroll</span>
+                    </button>
                     <button onclick="confirmClearAllSheets()" class="flex items-center space-x-2 px-4 py-2 bg-red-50 text-red-700 rounded-lg shadow-sm hover:bg-red-100 transition duration-150 text-sm font-medium border border-red-200">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-2 0v6a1 1 0 102 0V7z" clip-rule="evenodd" /></svg>
                         <span>Apagar Dados</span>
                     </button>
                 </div>
-                <div id="dynamic-table-content">
+                <div id="dynamic-table-content" class="mock-table-container">
                     <p class="text-center text-gray-400 py-10">Use o botão de importação (XML) para carregar dados nesta aba.</p>
                 </div>
             `;
@@ -254,8 +297,17 @@
                             <span class="text-blue-600">${printerIcon}</span>
                             <span>Imprimir Conferência</span>
                         </button>
-                    </div>
-                    <div id="dynamic-table-content-conferencia">
+
+                        <button id="toggle-expand-button-conf" onclick="toggleTableMode()" class="flex items-center space-x-2 px-4 py-2 bg-indigo-50 text-indigo-700 rounded-lg shadow-sm hover:bg-indigo-100 transition duration-150 text-sm font-medium border border-indigo-200">
+                            ${expandIcon}
+                            <span>Modo Expandido</span>
+                        </button>
+                        <button id="toggle-scroll-button-conf" onclick="toggleTableMode()" class="hidden flex items-center space-x-2 px-4 py-2 bg-indigo-50 text-indigo-700 rounded-lg shadow-sm hover:bg-indigo-100 transition duration-150 text-sm font-medium border border-indigo-200">
+                            ${scrollIcon}
+                            <span>Modo Scroll</span>
+                        </button>
+                        </div>
+                    <div id="dynamic-table-content-conferencia" class="mock-table-container">
                         <p class="text-center text-gray-400 py-10">Carregando dados...</p>
                     </div>
                 </div>
@@ -316,7 +368,7 @@
 
 
              return `
-                 <div class="rounded-lg border border-gray-200 overflow-x-auto shadow-sm">
+                 <div class="rounded-lg border border-gray-200 shadow-sm">
                     <table class="mock-table w-full text-sm" id="contagem-table">
                         <thead class="bg-gray-50 sticky top-0">
                             <tr><th>${headers[0]}</th></tr>
@@ -336,7 +388,7 @@
         function renderTable(sheetName, data, headers, isEditable = false) {
             
             if (sheetName === "CONTAGEM LOJA") {
-                // Chama a nova função com 3000 linhas pré-renderizadas
+                // Chama a função com 3000 linhas pré-renderizadas
                 return renderContagemTableWithPredefinedRows(data);
             }
             
@@ -346,6 +398,7 @@
 
             // Define se a coluna "Status" (índice 5 da Conferência) deve ser editável
             const isStatusEditable = sheetName === "CONFERENCIA";
+            const modeClass = isExpandedMode ? 'expand-mode' : '';
 
             let tableID = '';
             if (sheetName === 'CONFERENCIA') {
@@ -353,8 +406,8 @@
             }
 
             let html = `
-                <div class="rounded-lg border border-gray-200 overflow-x-auto shadow-sm">
-                    <table class="mock-table w-full text-sm" id="${tableID}">
+                <div class="rounded-lg border border-gray-200 shadow-sm">
+                    <table class="mock-table w-full text-sm ${modeClass}" id="${tableID}">
                         <thead class="bg-gray-50 sticky top-0">
                             <tr>`;
             
@@ -370,16 +423,12 @@
                 dataRows = data.slice(1);
             }
 
-            // Variável para rastrear o índice da última linha real que tem dados (para saber onde inserir a linha vazia)
-            let lastRowIndexInSheet = 0;
-
             dataRows.forEach((row, rowIndex) => {
                 const isRowEmpty = row.length === 0 || row.every(cell => !cell || String(cell).trim() === '');
                 if (isRowEmpty) return; // Pula linhas totalmente vazias
 
                 // Calcula o índice da linha no Sheets (baseado na linha 1)
                 const sheetRowIndex = (data[0][0] === headers[0] ? rowIndex + 2 : rowIndex + 1);
-                lastRowIndexInSheet = sheetRowIndex;
                 
                 html += `<tr data-row-index="${sheetRowIndex}">`;
                 
@@ -393,10 +442,8 @@
                     let editAttributes = '';
                     let cellClasses = '';
 
-                    // Lógica de Edição:
-                    // 1. CONTAGEM LOJA: APENAS A COLUNA 'A' (Índice 0) é editável (Manipulado por renderContagemTableWithPredefinedRows)
-                    // 2. CONFERENCIA: APENAS A COLUNA 'STATUS' (Índice 5) é editável
-                    const isCellEditable = (isStatusEditable && i === 5); // Removida a condição isEditable && i === 0
+                    // Apenas a coluna 'OBS' (índice 5) é editável na Conferência
+                    const isCellEditable = (isStatusEditable && i === 5); 
 
                     if (isCellEditable) {
                         editAttributes = `contenteditable="true"
@@ -412,8 +459,6 @@
                 html += `</tr>`;
             });
             
-            // Removida a lógica de adição dinâmica de linha para CONTAGEM LOJA
-
             html += `</tbody></table></div>`;
             return html;
         }
@@ -462,6 +507,11 @@
                     }
                 }
                 
+                // --- NOVO: Atualiza a visibilidade dos botões de Toggle ---
+                if (sheetName === "NOTA FISCAL" || sheetName === "CONFERENCIA") {
+                    updateToggleButtons();
+                }
+                
             } else if (sheetName !== "NOTA FISCAL" && sheetName !== "CONTAGEM LOJA") {
                 // Caso seja CONFERENCIA (ou outra aba sem layout pré-definido)
                 contentStack.innerHTML = `
@@ -476,6 +526,66 @@
                     }, 0);
                 }
             }
+        }
+        
+        /**
+         * Alterna entre o modo Scroll (padrão) e o modo Expandido.
+         */
+        function toggleTableMode() {
+            isExpandedMode = !isExpandedMode;
+            
+            // 1. Aplica/Remove a classe à tabela da aba NOTA FISCAL
+            const tableNf = document.querySelector('#dynamic-table-content .mock-table');
+            if (tableNf) {
+                if (isExpandedMode) {
+                    tableNf.classList.add('expand-mode');
+                } else {
+                    tableNf.classList.remove('expand-mode');
+                }
+            }
+            
+            // 2. Aplica/Remove a classe à tabela da aba CONFERENCIA
+            const tableConf = document.querySelector('#dynamic-table-content-conferencia .mock-table');
+            if (tableConf) {
+                if (isExpandedMode) {
+                    tableConf.classList.add('expand-mode');
+                } else {
+                    tableConf.classList.remove('expand-mode');
+                }
+            }
+
+            // 3. Atualiza o texto/visibilidade dos botões de Toggle
+            updateToggleButtons();
+        }
+        
+        /**
+         * Atualiza o texto/visibilidade dos botões Toggle.
+         */
+        function updateToggleButtons() {
+            // Botões da Nota Fiscal
+            const expandButton = document.getElementById('toggle-expand-button');
+            const scrollButton = document.getElementById('toggle-scroll-button');
+            
+            // Botões da Conferência
+            const expandButtonConf = document.getElementById('toggle-expand-button-conf');
+            const scrollButtonConf = document.getElementById('toggle-scroll-button-conf');
+
+            const elements = [
+                { exp: expandButton, scr: scrollButton },
+                { exp: expandButtonConf, scr: scrollButtonConf }
+            ];
+
+            elements.forEach(btns => {
+                if (btns.exp && btns.scr) {
+                    if (isExpandedMode) {
+                        btns.exp.classList.add('hidden');
+                        btns.scr.classList.remove('hidden');
+                    } else {
+                        btns.exp.classList.remove('hidden');
+                        btns.scr.classList.add('hidden');
+                    }
+                }
+            });
         }
         
         /**
@@ -559,7 +669,6 @@
                 // 2. Tenta pular para a próxima célula/linha (agora pré-renderizada)
                 if (nextCell) {
                     // Usamos um timeout de 0 para garantir que o blur() tenha sido completamente processado
-                    // e que o foco na próxima célula seja estável.
                     setTimeout(() => {
                         focusAndPlaceCursor(nextCell); 
                     }, 0);
@@ -653,11 +762,11 @@
         
         // --- Lógica de Limpeza Múltipla de Dados com Configurações ---
 
-        // CONFIGURAÇÃO ALTERADA: Inclui agora a limpeza da coluna 'F' (OBS) da aba CONFERENCIA
+        // CONFIGURAÇÃO ALTERADA: Inclui a limpeza da coluna 'F' (OBS) da aba CONFERENCIA
         const sheetsConfig = [
             { name: "NOTA FISCAL", range: 'A2:Z' },         // Limpa tudo da linha 2 em diante
             { name: "CONTAGEM LOJA", range: 'A2:Z' },       // Limpa tudo da linha 2 em diante
-            { name: "CONFERENCIA", range: 'F2:F' },         // NOVO: Limpa apenas a coluna F (OBS) da Conferência
+            { name: "CONFERENCIA", range: 'F2:F' },         // Limpa apenas a coluna F (OBS) da Conferência
         ];
 
         /**
@@ -675,7 +784,7 @@
          * Envia os comandos de limpeza de dados para TODAS as abas configuradas.
          */
         async function clearMultipleSheets() {
-            showNotification(`Iniciando limpeza em lote das ${sheetsConfig.length} abas de entrada e da OBS da Conferência...`, 'loading', 30000); // 30s max load
+            showNotification(`Iniciando limpeza em lote dos dados de entrada e da OBS da Conferência...`, 'loading', 30000); // 30s max load
 
             let successCount = 0;
             let errorCount = 0;
