@@ -375,7 +375,7 @@
          * Renderiza a tabela da Contagem Loja com 3000 linhas pré-renderizadas.
          */
         function renderContagemTableFixedRows(data, headers) {
-            const fixedRows = 2000;
+            const fixedRows = 3000;
             // Assume que a primeira linha de `data` é o cabeçalho se for retornado do Sheets
             const existingData = (data.length > 0 && headers.length > 0 && String(data[0][0]) === headers[0]) 
                                  ? data.slice(1) 
@@ -532,15 +532,10 @@
                 const targetElement = document.getElementById(targetElementId);
                 if (targetElement) {
                     targetElement.innerHTML = renderContagemTableFixedRows(data, headers);
-                    // O foco deve ser colocado na primeira célula vazia após a renderização
+                    
+                    // NOVO: Chama a função que encontra a primeira célula vazia e foca nela
                     setTimeout(() => {
-                        const firstEmptyCell = document.querySelector('#contagem-table td[contenteditable="true"]:empty');
-                        if (firstEmptyCell) {
-                             firstEmptyCell.focus();
-                        } else {
-                            // Se não houver célula vazia, foca na A2 (primeira linha)
-                            document.querySelector('td[data-sheet-range="A2"]').focus();
-                        }
+                        focusNextEmptyContagemCell();
                     }, 50);
                 }
 
@@ -558,6 +553,58 @@
                     }, 0);
                 }
             }
+        }
+        
+        /**
+         * Encontra a primeira célula vazia (após a última preenchida) na Contagem Loja e foca nela.
+         * Se a célula já estiver preenchida, não apaga o conteúdo, apenas move o foco para o final.
+         */
+        function focusNextEmptyContagemCell() {
+            const cells = document.querySelectorAll('#contagem-table td[contenteditable="true"]');
+            
+            // Variável para armazenar a célula a ser focada (padrão é a primeira, caso todas estejam vazias)
+            let cellToFocus = cells[0]; 
+            
+            // 1. Itera sobre todas as células para encontrar a primeira que está vazia
+            for (let i = 0; i < cells.length; i++) {
+                const cell = cells[i];
+                // Verifica o conteúdo renderizado (que veio do backend)
+                const value = cell.textContent.trim();
+                
+                if (value === '') {
+                    // Encontrou a primeira célula vazia.
+                    cellToFocus = cell;
+                    break; 
+                }
+            }
+            
+            // 2. Foca na célula encontrada
+            if (cellToFocus) {
+                cellToFocus.focus();
+                // Move o cursor para o final do conteúdo (mitiga a sobrescrita acidental)
+                moveCursorToEnd(cellToFocus); 
+            }
+        }
+
+        /**
+         * Utilitário para mover o cursor de edição para o final do texto em uma célula contenteditable.
+         */
+        function moveCursorToEnd(element) {
+            const range = document.createRange();
+            const selection = window.getSelection();
+            
+            if (element.childNodes.length > 0) {
+                 // Move para o final do primeiro nó de texto (que deve ser o único)
+                 const node = element.childNodes[0];
+                 range.setStart(node, node.length);
+            } else {
+                 // Se estiver vazio, foca no início do elemento
+                 range.setStart(element, 0);
+            }
+
+            range.collapse(true);
+            selection.removeAllRanges();
+            selection.addRange(range);
         }
         
         /**
