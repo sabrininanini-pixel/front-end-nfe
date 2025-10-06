@@ -40,8 +40,7 @@
             text-align: center; /* Centraliza o número para melhor visualização */
         }
 
-        /* Define Larguras FIXAS e estreitas para as colunas numéricas (3, 4, 5, 6 - OBS) */
-        /* No modo expandido (padrão desktop), o conteúdo (número) é truncado no TD e o cabeçalho (TH) se expande */
+        /* Define Larguras FIXAS e estreitas (70px) para as colunas numéricas da CONFERENCIA */
         #conferencia-content .mock-table th:nth-child(3), 
         #conferencia-content .mock-table td:nth-child(3),
         #conferencia-content .mock-table th:nth-child(4), 
@@ -50,16 +49,27 @@
         #conferencia-content .mock-table td:nth-child(5),
         #conferencia-content .mock-table th:nth-child(6), /* Coluna 'OBS' */
         #conferencia-content .mock-table td:nth-child(6) {
-             /* Largura mínima para 4 caracteres + padding (ex: 70px) */
              width: 70px; 
              min-width: 70px;
              max-width: 70px;
-             /* Por padrão (desktop), o texto na célula (TD) é truncado se for maior que 70px */
+             /* Por padrão (Modo Expandido), o texto na célula (TD) é truncado se for maior que 70px */
              overflow: hidden; 
              text-overflow: ellipsis;
              white-space: nowrap;
         }
         
+        /* NOVO: Define Largura FIXA e estreita (70px) para a coluna 'Quantidade' (2ª) da NOTA FISCAL */
+        #dynamic-table-content .mock-table th:nth-child(2),
+        #dynamic-table-content .mock-table td:nth-child(2) {
+             width: 70px; 
+             min-width: 70px;
+             max-width: 70px;
+             overflow: hidden; 
+             text-overflow: ellipsis;
+             white-space: nowrap;
+             text-align: center; /* Centraliza o número */
+        }
+
         /* Centraliza os valores numéricos */
         #conferencia-content .mock-table td:nth-child(3), 
         #conferencia-content .mock-table td:nth-child(4),
@@ -68,10 +78,10 @@
         }
 
         /* ---------------------------------------------------------------- */
-        /* --- ESTILOS DO MODO SCROLL/EXPANDIDO (MOBILE) --- */
+        /* --- ESTILOS DO MODO SCROLL/EXPANDIDO (UNIVERSAL) --- */
         /* ---------------------------------------------------------------- */
 
-        /* Estilo base para MODO EXPANDIDO (o desktop usa este comportamento por padrão) */
+        /* Estilo base para MODO EXPANDIDO (Permite que a célula se ajuste ao conteúdo) */
         .expand-mode-cell {
             max-width: none !important;
             min-width: 0 !important;
@@ -79,35 +89,25 @@
             white-space: normal !important;
         }
 
-        /* O MODO SCROLL SÓ SERÁ ATIVADO EM TELAS PEQUENAS (Mobile) */
-        @media (max-width: 767px) {
-            
-            /* Classe para MODO SCROLL (COLUNA DESCRIÇÃO - 2) */
-            .scroll-mode-cell-mobile {
-                max-width: 150px !important; 
-                min-width: 150px !important;
-                overflow-x: scroll !important;
-                white-space: nowrap !important;
-                text-overflow: clip !important; /* Mostra o scroll, não reticências */
-            }
-            
-            /* Classe para MODO SCROLL (COLUNAS NUMÉRICAS - 3, 4, 5, 6) */
-            .scroll-mode-cell-numeric-mobile {
-                /* Mantém a largura de 70px, mas força o scroll horizontal */
-                overflow-x: scroll !important;
-                white-space: nowrap !important;
-                text-overflow: clip !important;
-                text-align: left !important; /* Alinha o texto à esquerda para o scroll do cabeçalho */
-            }
+        /* Classe para MODO SCROLL (COLUNAS DE DESCRIÇÃO E TEXTO LONGO) */
+        .scroll-mode-cell {
+            max-width: 150px !important; 
+            min-width: 150px !important;
+            overflow-x: scroll !important; /* Ativa a rolagem horizontal */
+            white-space: nowrap !important; /* Força o texto em uma linha */
+            text-overflow: clip !important; /* Mostra o scroll, não reticências */
         }
         
-        /* Ocultar o botão "Modo Scroll" no desktop (acima de 767px) */
-        @media (min-width: 768px) {
-            #scroll-button {
-                display: none;
-            }
+        /* Classe para MODO SCROLL (COLUNAS NUMÉRICAS OU ESTREITAS) */
+        .scroll-mode-cell-numeric {
+            width: 70px !important; 
+            min-width: 70px !important;
+            max-width: 70px !important;
+            overflow-x: scroll !important;
+            white-space: nowrap !important;
+            text-overflow: clip !important;
+            text-align: left !important; /* Alinha o texto à esquerda para o scroll do cabeçalho */
         }
-
 
         /* Classes usadas pelo JavaScript para aplicar as cores */
         .bg-fee2e2 { background-color: #fee2e2; } /* Vermelho suave (red-100) */
@@ -156,7 +156,7 @@
             }
             
             /* Força todas as colunas a expandir na impressão */
-            .scroll-mode-cell-mobile, .scroll-mode-cell-numeric-mobile, .expand-mode-cell {
+            .scroll-mode-cell, .scroll-mode-cell-numeric, .expand-mode-cell {
                 max-width: none !important;
                 min-width: 0 !important;
                 overflow-x: visible !important;
@@ -270,6 +270,10 @@
                         <span>Importar por Chave de Acesso</span>
                     </button>
                     
+                    <button onclick="toggleScrollMode('NOTA FISCAL')" id="scroll-button-notafiscal" class="flex items-center space-x-2 px-4 py-2 bg-gray-100 text-gray-800 rounded-lg shadow-sm hover:bg-gray-200 transition duration-150 text-sm font-medium border border-gray-300">
+                        <span>Modo Scroll</span>
+                    </button>
+
                     <button onclick="confirmClearAllSheets()" class="flex items-center space-x-2 px-4 py-2 bg-red-50 text-red-700 rounded-lg shadow-sm hover:bg-red-100 transition duration-150 text-sm font-medium border border-red-200">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-2 0v6a1 1 0 102 0V7z" clip-rule="evenodd" /></svg>
                         <span>Apagar Dados</span>
@@ -308,7 +312,7 @@
                             <span class="text-blue-600">${printerIcon}</span>
                             <span>Imprimir Conferência</span>
                         </button>
-                        <button onclick="toggleScrollMode()" id="scroll-button" class="flex items-center space-x-2 px-4 py-2 bg-gray-100 text-gray-800 rounded-lg shadow-sm hover:bg-gray-200 transition duration-150 text-sm font-medium border border-gray-300">
+                        <button onclick="toggleScrollMode('CONFERENCIA')" id="scroll-button-conferencia" class="flex items-center space-x-2 px-4 py-2 bg-gray-100 text-gray-800 rounded-lg shadow-sm hover:bg-gray-200 transition duration-150 text-sm font-medium border border-gray-300">
                             <span>Modo Scroll</span>
                         </button>
                     </div>
@@ -340,10 +344,16 @@
             }
 
             // A coluna 'OBS' (índice 5, 6ª coluna) é editável
-            const isStatusEditable = sheetName === "CONFERENCIA";
+            const isConferencia = sheetName === "CONFERENCIA";
+            const isStatusEditable = isConferencia;
             
-            // Adiciona ID à tabela quando for CONFERENCIA para ser alvo do toggleScrollMode
-            const tableID = isStatusEditable ? 'conferencia-table' : (isEditable ? 'contagem-table' : '');
+            // Adiciona ID à tabela para ser alvo do toggleScrollMode
+            let tableID = '';
+            if (sheetName === 'CONFERENCIA') {
+                tableID = 'conferencia-table';
+            } else if (sheetName === 'NOTA FISCAL') {
+                tableID = 'notafiscal-table';
+            }
 
 
             let html = `
@@ -406,9 +416,15 @@
                         cellClasses = 'cursor-text hover:bg-indigo-50/50 focus:bg-indigo-100 border border-transparent focus:border-indigo-400 transition';
                     }
                     
-                    // NOVO: Aplica a classe inicial de expansão a todas as colunas que terão toggle (Modo Expandido é o padrão para desktop)
-                    const columnsToExpand = [2, 3, 4, 5, 6]; // Colunas 2 (Descrição) a 6 (OBS)
-                    if (isStatusEditable && columnsToExpand.includes(i + 1)) { 
+                    // Aplica a classe inicial de expansão (padrão desktop/inicial)
+                    let columnsToExpand = [];
+                    if (isConferencia) {
+                         columnsToExpand = [2, 3, 4, 5, 6]; // Descrição, Qtd NF, Contagem, Diferença, OBS
+                    } else if (sheetName === "NOTA FISCAL") {
+                         columnsToExpand = [1, 2, 3, 4]; // Descrição, Quantidade, Código, Item
+                    }
+                    
+                    if (columnsToExpand.includes(i + 1)) { 
                          cellClasses += ' expand-mode-cell'; 
                     }
 
@@ -496,6 +512,10 @@
 
             if (sheetName === "NOTA FISCAL") {
                 headers = ["Descrição", "Quantidade", "Código de Barras", "Item"];
+                // Define o botão no estado inicial (Modo Scroll)
+                const button = document.getElementById('scroll-button-notafiscal');
+                if(button) button.textContent = 'Modo Scroll';
+
             } else if (sheetName === "CONTAGEM LOJA") {
                 // Apenas um cabeçalho é necessário para a entrada do usuário
                 headers = ["Código de Barras"]; 
@@ -505,6 +525,10 @@
                 // 'Status' RENOMEADO para 'OBS'
                 headers = ["Código de Barras", "Descrição do Produto", "Quantidade NF", "Contagem Loja", "Diferença", "OBS"]; 
                 targetElementId = 'dynamic-table-content-conferencia';
+                
+                // Define o botão no estado inicial (Modo Scroll)
+                const button = document.getElementById('scroll-button-conferencia');
+                if(button) button.textContent = 'Modo Scroll';
             }
 
             const targetElement = document.getElementById(targetElementId);
@@ -517,11 +541,6 @@
                     setTimeout(() => {
                         applyConferenciaStyles(headers.length);
                     }, 0);
-                    
-                    // O Modo Expandido é o padrão, mas no mobile o scroll-mode é o inicial. 
-                    // No load, forçamos o texto do botão para "Modo Scroll" (estado de expansão).
-                    const button = document.getElementById('scroll-button');
-                    if(button) button.textContent = 'Modo Scroll';
                 }
                 
             } else if (sheetName !== "NOTA FISCAL" && sheetName !== "CONTAGEM LOJA") {
@@ -561,46 +580,54 @@
         }
         
         /**
-         * Alterna entre o Modo Scroll (células truncadas com scroll horizontal interno) 
-         * e o Modo Expandido (colunas se ajustam ao conteúdo mais longo).
-         * Esta função é funcional APENAS em dispositivos móveis (o botão é oculto no desktop via CSS).
+         * Alterna entre o Modo Scroll e o Modo Expandido para a tabela especificada.
+         * Esta função é agora universal (desktop e mobile).
          */
-        function toggleScrollMode() {
-            // A tabela só existe na aba CONFERENCIA
-            const table = document.getElementById('conferencia-table');
-            const button = document.getElementById('scroll-button');
+        function toggleScrollMode(sheetName) {
+            const tableID = sheetName === 'CONFERENCIA' ? 'conferencia-table' : 'notafiscal-table';
+            const buttonID = sheetName === 'CONFERENCIA' ? 'scroll-button-conferencia' : 'scroll-button-notafiscal';
+
+            const table = document.getElementById(tableID);
+            const button = document.getElementById(buttonID);
 
             if (!table || !button) return;
             
-            // Colunas Alvo (Índices): 2 (Descrição), 3 (Qtd NF), 4 (Contagem), 5 (Diferença), 6 (OBS)
-            const columnsToTarget = [2, 3, 4, 5, 6];
-            
-            // Checa o estado atual (Modo Expandido é o que está ativo se o texto for 'Modo Scroll')
+            // O Modo Expandido é o estado ativo se o texto do botão for 'Modo Expandido'
             const isScrollModeActive = button.textContent === 'Modo Expandido';
+            
+            let columnsToTarget = [];
+            let scrollClassDesc = 'scroll-mode-cell';
+            let scrollClassNumeric = 'scroll-mode-cell-numeric';
+
+            if (sheetName === 'CONFERENCIA') {
+                // Colunas Alvo (Índices): 2 (Descrição), 3 (Qtd NF), 4 (Contagem), 5 (Diferença), 6 (OBS)
+                columnsToTarget = [2, 3, 4, 5, 6];
+            } else if (sheetName === 'NOTA FISCAL') {
+                // Colunas Alvo (Índices): 1 (Descrição), 2 (Quantidade), 3 (Código), 4 (Item)
+                columnsToTarget = [1, 2, 3, 4];
+            }
 
             columnsToTarget.forEach(colIndex => {
                 // Seleciona o cabeçalho (th) e todas as células (td) da coluna
                 const cells = table.querySelectorAll(`th:nth-child(${colIndex}), td:nth-child(${colIndex})`);
                 
                 cells.forEach(cell => {
-                    // Classes de scroll específicas
-                    const scrollClass = 'scroll-mode-cell-mobile';
-                    const numericScrollClass = 'scroll-mode-cell-numeric-mobile';
-
-                    // Colunas numéricas usam a classe 'numeric' mais estreita (Índices 3 a 6)
-                    const isNumericColumn = colIndex >= 3 && colIndex <= 6;
+                    // Determinação de coluna numérica/estreita:
+                    // CONFERENCIA: colunas 3, 4, 5, 6
+                    // NOTA FISCAL: coluna 2 (Quantidade)
+                    const isNumericColumn = (sheetName === 'CONFERENCIA' && colIndex >= 3 && colIndex <= 6) || (sheetName === 'NOTA FISCAL' && colIndex === 2);
                     
                     if (isScrollModeActive) {
-                        // Mudar para MODO EXPANDIDO (Remove scroll, adiciona expansão)
-                        cell.classList.remove(scrollClass, numericScrollClass);
-                        cell.classList.add('expand-mode-cell');
+                        // Mudar para MODO EXPANDIDO
+                        cell.classList.remove(scrollClassDesc, scrollClassNumeric);
+                        cell.classList.add('expand-mode-cell'); 
                     } else {
-                        // Mudar para MODO SCROLL (Adiciona scroll, remove expansão)
+                        // Mudar para MODO SCROLL
                         cell.classList.remove('expand-mode-cell');
                         if (isNumericColumn) {
-                            cell.classList.add(numericScrollClass);
+                            cell.classList.add(scrollClassNumeric);
                         } else {
-                            cell.classList.add(scrollClass);
+                            cell.classList.add(scrollClassDesc);
                         }
                     }
                 });
