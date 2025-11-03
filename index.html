@@ -1731,12 +1731,13 @@ window.fetch = async function(...args) {
                 showNotification("Campo de chave não encontrado.", "error");
                 return;
             }
-            const chaveAcesso = chaveInput.value.trim();
 
-            if (!chaveAcesso || chaveAcesso.length !== 44) {
-                showNotification("Chave de acesso inválida. Deve conter 44 dígitos.", "warning");
-                return;
-            }
+			    let chaveAcesso = chaveInput.value.replace(/\s+/g, '');
+    
+    if (!chaveAcesso || chaveAcesso.length !== 44) {
+        showNotification(`Chave de acesso inválida. Deve conter 44 dígitos. (Atual: ${chaveAcesso.length} dígitos)`, "warning");
+        return;
+    }
 
             showNotification("Importando XML pela chave de acesso...", "loading");
 
