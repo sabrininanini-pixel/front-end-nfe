@@ -402,7 +402,6 @@
                 hideNotification();
                 console.error('Erro no login:', error);
                 
-                // ✅ CORREÇÃO: Bug da variável 'response' removido
                 if (error.message.includes('401')) {
                     showNotification('Usuário ou senha incorretos', 'error');
                 } else if (error.message.includes('NetworkError') || error.message.includes('Failed to fetch')) {
@@ -478,45 +477,50 @@
         }
 
         // Interceptador para verificar autenticação em todas as requisições
-        // =========================================================================
-// INTERCEPTADOR DE FETCH CORRIGIDO
-// =========================================================================
-
-const originalFetch = window.fetch;
-window.fetch = async function(...args) {
-    try {
-        const response = await originalFetch.apply(this, args);
-        
-        // Debug: log para verificar as respostas
-        if (response.status === 401) {
-            console.log('🔐 Resposta 401 recebida para:', args[0]);
-            console.log('👤 Usuário atual:', currentUser);
-        }
-        
-        // Só faz logout se for 401, usuário estiver logado E não for rota de auth
-        if (response.status === 401 && currentUser) {
-            const url = args[0] || '';
-            
-            // Não faz logout automaticamente para rotas de autenticação
-            if (!url.includes('/api/login') && !url.includes('/api/check-auth')) {
-                console.log('🔄 Sessão expirada detectada, fazendo logout...');
-                showNotification('Sessão expirada. Faça login novamente.', 'error');
+        const originalFetch = window.fetch;
+        window.fetch = async function(...args) {
+            try {
+                const response = await originalFetch.apply(this, args);
                 
-                // Pequeno delay para mostrar a notificação antes do logout
-                setTimeout(() => {
-                    if (currentUser) { // Verifica novamente antes de fazer logout
-                        logout();
+                // Se for 401 em uma rota protegida E usuário está logado
+                if (response.status === 401 && currentUser) {
+                    const url = args[0] || '';
+                    
+                    // Ignora rotas públicas
+                    if (url.includes('/api/login') || url.includes('/api/check-auth')) {
+                        return response;
                     }
-                }, 3000);
+                    
+                    console.log('🔐 Sessão expirada para rota protegida:', url);
+                    
+                    // Verifica novamente com check-auth para confirmar
+                    const authCheck = await fetch(`${BACKEND_URL}/api/check-auth`, {
+                        method: 'GET',
+                        credentials: 'include'
+                    });
+                    
+                    if (authCheck.status === 401) {
+                        console.log('✅ Confirmação: sessão realmente expirada');
+                        showNotification('Sessão expirada. Faça login novamente.', 'error');
+                        
+                        // Pequeno delay antes do logout
+                        setTimeout(() => {
+                            if (currentUser) {
+                                logout();
+                            }
+                        }, 2000);
+                    } else {
+                        console.log('❌ Falso positivo - sessão ainda válida');
+                        // Não faz logout - pode ser um erro específico da rota
+                    }
+                }
+                
+                return response;
+            } catch (error) {
+                console.error('Erro no interceptador fetch:', error);
+                throw error;
             }
-        }
-        
-        return response;
-    } catch (error) {
-        console.error('Erro no interceptador fetch:', error);
-        throw error;
-    }
-};
+        };
 
         /**
          * Inicialização do sistema de autenticação
@@ -1649,48 +1653,34 @@ window.fetch = async function(...args) {
         // --- Funções de API e Utilitários ---
         
         async function fetchSheetData(sheetName) {
-    showNotification(`Buscando dados da aba '${sheetName}'...`, 'loading');
-    
-    try {
-        const response = await fetch(`${BACKEND_URL}/api/fetch-sheet-data`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
-            body: JSON.stringify({ sheet_name: sheetName })
-        });
+            showNotification(`Buscando dados da aba '${sheetName}'...`, 'loading');
+            
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/fetch-sheet-data`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ sheet_name: sheetName })
+                });
 
-        // Se for 401, não tenta parsear como JSON
-        if (response.status === 401) {
-            hideNotification();
-            // Não mostra notificação de erro aqui - o interceptador cuida disso
-            return [];
+                const result = await response.json();
+
+                if (!response.ok || result.error) {
+                    hideNotification();
+                    showNotification(`Erro ao carregar '${sheetName}': ${result.error || 'Erro de servidor.'}`, 'error');
+                    return [];
+                }
+                
+                hideNotification();
+                return result.data || [];
+
+            } catch (error) {
+                hideNotification();
+                console.error("Erro na comunicação para buscar dados:", error);
+                showNotification(`Erro de Rede/CORS ao buscar dados para ${sheetName}.`, 'error');
+                return [];
+            }
         }
-
-        const result = await response.json();
-
-        if (!response.ok || result.error) {
-            hideNotification();
-            showNotification(`Erro ao carregar '${sheetName}': ${result.error || 'Erro de servidor.'}`, 'error');
-            return [];
-        }
-        
-        hideNotification();
-        return result.data || [];
-
-    } catch (error) {
-        hideNotification();
-        console.error("Erro na comunicação para buscar dados:", error);
-        
-        // Se for erro de JSON, provavelmente é um 401 não tratado
-        if (error instanceof SyntaxError) {
-            console.log('📝 Possível resposta 401 não formatada como JSON');
-            return [];
-        }
-        
-        showNotification(`Erro de Rede ao buscar dados para ${sheetName}.`, 'error');
-        return [];
-    }
-}
 
         async function importXMLData(xmlContent) {
             if (!xmlContent || xmlContent.trim().length < 100) {
@@ -1725,19 +1715,23 @@ window.fetch = async function(...args) {
             }
         }
 
+        /**
+         * ✅ FUNÇÃO CORRIGIDA: Importa XML por chave ignorando espaços
+         */
         async function importarXMLPorChave() {
             const chaveInput = document.getElementById("chave-acesso-input");
             if (!chaveInput) {
                 showNotification("Campo de chave não encontrado.", "error");
                 return;
             }
-
-			    let chaveAcesso = chaveInput.value.replace(/\s+/g, '');
-    
-    if (!chaveAcesso || chaveAcesso.length !== 44) {
-        showNotification(`Chave de acesso inválida. Deve conter 44 dígitos. (Atual: ${chaveAcesso.length} dígitos)`, "warning");
-        return;
-    }
+            
+            // ✅ CORREÇÃO: Remove espaços automaticamente
+            let chaveAcesso = chaveInput.value.replace(/\s+/g, '');
+            
+            if (!chaveAcesso || chaveAcesso.length !== 44) {
+                showNotification(`Chave de acesso inválida. Deve conter 44 dígitos. (Atual: ${chaveAcesso.length} dígitos)`, "warning");
+                return;
+            }
 
             showNotification("Importando XML pela chave de acesso...", "loading");
 
