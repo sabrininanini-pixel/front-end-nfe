@@ -191,7 +191,7 @@
                 box-shadow: none !important;
                 margin: 0 !important;
                 padding: 0 !important;
-                width: 100 !important;
+                width: 100% !important;
                 max-width: none !important;
                 border: none !important;
             }
@@ -402,7 +402,8 @@
                 hideNotification();
                 console.error('Erro no login:', error);
                 
-                if (error.message.includes('401') || (response && response.status === 401)) {
+                // ✅ CORREÇÃO: Bug da variável 'response' removido
+                if (error.message.includes('401')) {
                     showNotification('Usuário ou senha incorretos', 'error');
                 } else if (error.message.includes('NetworkError') || error.message.includes('Failed to fetch')) {
                     showNotification('Erro de conexão com o servidor', 'error');
