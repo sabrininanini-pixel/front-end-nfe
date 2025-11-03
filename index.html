@@ -191,7 +191,7 @@
                 box-shadow: none !important;
                 margin: 0 !important;
                 padding: 0 !important;
-                width: 100% !important;
+                width: 100 !important;
                 max-width: none !important;
                 border: none !important;
             }
@@ -590,6 +590,7 @@
                         fetch(`${BACKEND_URL}/api/batch-update-sheet`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
+                            credentials: 'include',
                             body: JSON.stringify({ 
                                 sheet_name: currentContador,
                                 updates: Object.entries(cachedData).map(([range, value]) => ({
@@ -1376,6 +1377,7 @@
                 const response = await fetch(`${BACKEND_URL}/api/batch-update-sheet`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
                     body: JSON.stringify({ 
                         sheet_name: currentContador,
                         updates: updates 
@@ -1621,9 +1623,10 @@
             showNotification(`Buscando dados da aba '${sheetName}'...`, 'loading');
             
             try {
-                const response = await fetch(`${BACKEND_URL}/api/fetch-sheet`, {
+                const response = await fetch(`${BACKEND_URL}/api/fetch-sheet-data`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
                     body: JSON.stringify({ sheet_name: sheetName })
                 });
 
@@ -1655,9 +1658,10 @@
             showNotification("Enviando XML para o backend...", 'loading');
 
             try {
-                const response = await fetch(`${BACKEND_URL}/api/import-xml`, {
+                const response = await fetch(`${BACKEND_URL}/api/import-xml-data`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
                     body: JSON.stringify({ xml_content: xmlContent, user_id: USER_ID })
                 });
 
@@ -1694,9 +1698,10 @@
             showNotification("Importando XML pela chave de acesso...", "loading");
 
             try {
-                const response = await fetch(`${BACKEND_URL}/api/importar-xml`, {
+                const response = await fetch(`${BACKEND_URL}/api/importar-xml-chave`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
+                    credentials: 'include',
                     body: JSON.stringify({ chaveAcesso })
                 });
 
@@ -1732,9 +1737,10 @@
             element.classList.add('saving-status'); 
 
             try {
-                const response = await fetch(`${BACKEND_URL}/api/update-sheet`, {
+                const response = await fetch(`${BACKEND_URL}/api/update-sheet-data`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
                     body: JSON.stringify({ sheet_name: sheetName, range: sheetRange, value: newValue })
                 });
 
@@ -1830,9 +1836,10 @@
             }
             
             try {
-                const response = await fetch(`${BACKEND_URL}/api/clear-sheet`, {
+                const response = await fetch(`${BACKEND_URL}/api/clear-sheet-data`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
                     body: JSON.stringify({ sheet_name: sheetName, range: range })
                 });
 
