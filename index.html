@@ -85,24 +85,18 @@
              text-align: center; 
         }
 
-        /* Coluna Código de Barras (300px) da Contagem Loja */
+        /* Coluna Código de Barras (210px) da Nota Fiscal e Contagem Loja */
+        #notafiscal-table th:nth-child(3),
+        #notafiscal-table td:nth-child(3),
         #contagem-table th:nth-child(1),
         #contagem-table td:nth-child(1) {
-            width: 300px !important;
-            min-width: 300px !important;
-            max-width: 300px !important;
+            width: 210px; 
+            min-width: 210px;
+            max-width: 210px;
             overflow: hidden; 
             text-overflow: ellipsis;
             white-space: nowrap;
             text-align: left;
-        }
-
-        /* Coluna Descrição da Contagem Loja - CORRIGIDA: REMOVIDO PADDING E ALINHAMENTO À ESQUERDA */
-        #contagem-table th:nth-child(2),
-        #contagem-table td:nth-child(2) {
-            padding-left: 0 !important; /* REMOVIDO PADDING FIXO */
-            width: auto;
-            text-align: left !important;
         }
 
         /* Centraliza os valores numéricos da CONFERENCIA */
@@ -155,20 +149,13 @@
             text-align: left !important;
         }
 
+
         /* Classes usadas pelo JavaScript para aplicar as cores */
         .bg-fee2e2 { background-color: #fee2e2; } /* Vermelho suave (red-100) */
         .text-b91c1c { color: #b91c1c; } /* Vermelho escuro (red-700) */
         .bg-green-100 { background-color: #d1fae5; } /* Verde suave */
         .text-green-700 { color: #047857; } /* Verde escuro */
 
-        /* Estilo para linhas com código mas sem descrição na Contagem Loja - CORRIGIDO */
-        .bg-red-50 {
-            background-color: #fecaca !important;
-        }
-
-        .bg-red-50:hover {
-            background-color: #fecaca !important; /* Vermelho mais escuro no hover */
-        }
 
         /* Estilo para células editáveis (Contagem Loja / OBS) */
         [contenteditable="true"]:focus {
@@ -247,301 +234,46 @@
 </head>
 <body class="bg-gray-50 min-h-screen">
 
-    <!-- TELA DE LOGIN -->
-    <div id="login-screen" class="min-h-screen flex items-center justify-center bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
-        <div class="max-w-md w-full space-y-8">
-            <div class="bg-white p-8 rounded-lg shadow-md">
-                <div class="text-center mb-8">
-                    <h1 class="text-3xl font-bold text-gray-900 mb-2">Sistema de Conferência</h1>
-                    <p class="text-gray-600">Faça login para continuar</p>
-                </div>
-                
-                <div class="mb-6">
-                    <label for="username" class="block text-sm font-medium text-gray-700 mb-2">Usuário</label>
-                    <input 
-                        type="text" 
-                        id="username" 
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="Digite seu usuário"
-                    >
-                </div>
+    <div class="container mx-auto px-0 py-4 md:p-8">
+        <header class="mb-6 print-hidden">
+            <h1 class="text-3xl font-extrabold text-gray-900 md:px-0 px-4">
+                Conferir Nota Fiscal
+            </h1>
+        </header>
 
-                <div class="mb-6">
-                    <label for="password" class="block text-sm font-medium text-gray-700 mb-2">Senha</label>
-                    <div class="relative">
-                        <input 
-                            type="password" 
-                            id="password" 
-                            class="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            placeholder="Digite sua senha"
-                        >
-                        <button 
-                            type="button" 
-                            id="toggle-password"
-                            class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
-                            onclick="togglePasswordVisibility()"
-                        >
-                            <svg id="eye-icon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                            </svg>
-                            <svg id="eye-slash-icon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
-                            </svg>
-                        </button>
-                    </div>
-                </div>
+        <div class="bg-white rounded-xl shadow-lg border border-gray-100 px-0 pt-6 pb-6 md:p-6">
 
-                <button 
-                    onclick="login()"
-                    class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-200 font-medium"
-                >
-                    Entrar
-                </button>
+            <nav class="flex border-b border-gray-200 print-hidden">
+                <button data-tab="NOTA FISCAL" class="tab-button px-4 py-3 text-sm font-medium border-b-2 border-indigo-600 text-indigo-600 transition-colors duration-150">NOTA FISCAL</button>
+                <button data-tab="CONTAGEM LOJA" class="tab-button px-4 py-3 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 transition-colors duration-150">CONTAGEM LOJA</button>
+                <button data-tab="CONFERENCIA" class="tab-button px-4 py-3 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 transition-colors duration-150">CONFERENCIA</button>
+            </nav>
+
+            <div id="content-stack" class="pt-6">
+            </div>
+            
+        </div>
+    </div>
+
+    <div id="paste-modal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 transition-opacity duration-300 print-hidden">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-lg mx-4 p-6">
+            <h3 class="text-lg font-bold mb-4">Colar Chave de Acesso (44 dígitos)</h3>
+            <textarea id="chave-acesso-input" class="w-full h-24 p-3 border border-gray-300 rounded-lg resize-none text-sm font-mono focus:ring-indigo-500 focus:border-indigo-500" placeholder="Cole a Chave de Acesso (44 dígitos) aqui..."></textarea>
+            <div class="flex justify-end space-x-3 mt-4">
+                <button onclick="hidePasteModal()" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition duration-150">Cancelar</button>
+                <button onclick="importarXMLPorChave()" class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition duration-150">Importar XML por Chave</button>
             </div>
         </div>
     </div>
 
-    <!-- SISTEMA PRINCIPAL (inicialmente oculto) -->
-    <div id="main-system" class="hidden">
-        <div class="container mx-auto px-0 py-4 md:p-8">
-            <header class="mb-6 print-hidden">
-                <div class="flex justify-between items-center">
-                    <h1 class="text-3xl font-extrabold text-gray-900 md:px-0 px-4">
-                        Conferir Nota Fiscal
-                    </h1>
-                    <button onclick="logout()" class="flex items-center space-x-2 px-4 py-2 bg-gray-100 text-gray-800 rounded-lg shadow-sm hover:bg-gray-200 transition duration-150 text-sm font-medium border border-gray-300">
-                        <span>Sair</span>
-                    </button>
-                </div>
-            </header>
-
-            <div class="bg-white rounded-xl shadow-lg border border-gray-100 px-0 pt-6 pb-6 md:p-6">
-
-                <nav class="flex border-b border-gray-200 print-hidden">
-                    <button data-tab="NOTA FISCAL" class="tab-button px-4 py-3 text-sm font-medium border-b-2 border-indigo-600 text-indigo-600 transition-colors duration-150">NOTA FISCAL</button>
-                    <button data-tab="CONTAGEM LOJA" class="tab-button px-4 py-3 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 transition-colors duration-150">CONTAGEM LOJA</button>
-                    <button data-tab="CONFERENCIA" class="tab-button px-4 py-3 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 transition-colors duration-150">CONFERENCIA</button>
-                </nav>
-
-                <div id="content-stack" class="pt-6">
-                </div>
-                
-            </div>
-        </div>
-
-        <div id="paste-modal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 transition-opacity duration-300 print-hidden">
-            <div class="bg-white rounded-lg shadow-xl w-full max-w-lg mx-4 p-6">
-                <h3 class="text-lg font-bold mb-4">Colar Chave de Acesso (44 dígitos)</h3>
-                <textarea id="chave-acesso-input" class="w-full h-24 p-3 border border-gray-300 rounded-lg resize-none text-sm font-mono focus:ring-indigo-500 focus:border-indigo-500" placeholder="Cole a Chave de Acesso (44 dígitos) aqui..."></textarea>
-                <div class="flex justify-end space-x-3 mt-4">
-                    <button onclick="hidePasteModal()" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition duration-150">Cancelar</button>
-                    <button onclick="importarXMLPorChave()" class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition duration-150">Importar XML por Chave</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- NOTIFICAÇÕES FORA DA MAIN-SYSTEM (SEMPRE VISÍVEIS) -->
     <div id="notifications-container" class="fixed bottom-4 right-4 space-y-2 z-50 print-hidden">
     </div>
 
     <script>
-        // =========================================================================
-        // CONFIGURAÇÃO PARA ONLINE - MUDANÇA PRINCIPAL
-        // =========================================================================
-        const BACKEND_URL = "https://back-end-nfe.onrender.com"; // URL do backend online
+        // --- Variáveis de Configuração ---
+        const BACKEND_URL = "https://back-end-nfe.onrender.com";
         const USER_ID = "web-user-123";
         
-        // =========================================================================
-        // SISTEMA DE AUTENTICAÇÃO
-        // =========================================================================
-
-        let currentUser = null;
-
-        /**
-         * Realiza o login
-         */
-        async function login() {
-            const username = document.getElementById('username').value.trim();
-            const password = document.getElementById('password').value;
-            
-            if (!username || !password) {
-                showNotification('Preencha usuário e senha', 'error');
-                return;
-            }
-
-            showNotification('Autenticando...', 'loading');
-
-            try {
-                const response = await fetch(`${BACKEND_URL}/api/login`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    credentials: 'include',
-                    body: JSON.stringify({
-                        username: username,
-                        password: password
-                    })
-                });
-
-                const result = await response.json();
-
-                hideNotification();
-
-                if (result.success) {
-                    currentUser = result.user;
-                    showMainSystem();
-                    showNotification(`Bem-vindo, ${username}!`, 'success');
-                } else {
-                    showNotification(result.message || 'Erro ao fazer login', 'error');
-                }
-
-            } catch (error) {
-                hideNotification();
-                console.error('Erro no login:', error);
-                
-                if (error.message.includes('401') || (response && response.status === 401)) {
-                    showNotification('Usuário ou senha incorretos', 'error');
-                } else if (error.message.includes('NetworkError') || error.message.includes('Failed to fetch')) {
-                    showNotification('Erro de conexão com o servidor', 'error');
-                } else {
-                    showNotification('Erro ao fazer login', 'error');
-                }
-            }
-        }
-
-        async function checkAuth() {
-            try {
-                const response = await fetch(`${BACKEND_URL}/api/check-auth`, {
-                    method: 'GET',
-                    credentials: 'include'
-                });
-
-                if (response.status === 401) {
-                    return false;
-                }
-
-                const result = await response.json();
-                
-                if (result.success) {
-                    currentUser = result.user;
-                    return true;
-                }
-                return false;
-                
-            } catch (error) {
-                console.error('Erro ao verificar autenticação:', error);
-                return false;
-            }
-        }
-
-        /**
-         * Realiza logout
-         */
-        async function logout() {
-            try {
-                await fetch(`${BACKEND_URL}/api/logout`, {
-                    method: 'POST',
-                    credentials: 'include'
-                });
-            } catch (error) {
-                console.error('Erro no logout:', error);
-            } finally {
-                currentUser = null;
-                document.getElementById('main-system').classList.add('hidden');
-                document.getElementById('login-screen').classList.remove('hidden');
-                document.getElementById('username').value = '';
-                document.getElementById('password').value = '';
-            }
-        }
-
-        /**
-         * Mostra o sistema principal
-         */
-        function showMainSystem() {
-            document.getElementById('login-screen').classList.add('hidden');
-            document.getElementById('main-system').classList.remove('hidden');
-            
-            initializeSystem();
-        }
-
-        /**
-         * Inicializa o sistema após login
-         */
-        function initializeSystem() {
-            switchTab('NOTA FISCAL');
-            setupBeforeUnloadListener();
-            startCacheChangeMonitor();
-        }
-
-        // Interceptador para verificar autenticação em todas as requisições
-        const originalFetch = window.fetch;
-        window.fetch = async function(...args) {
-            const response = await originalFetch.apply(this, args);
-            
-            if (response.status === 401 && currentUser) {
-                showNotification('Sessão expirada', 'error');
-                logout();
-            }
-            
-            return response;
-        };
-
-        /**
-         * Inicialização do sistema de autenticação
-         */
-        async function initializeApp() {
-            try {
-                const isAuthenticated = await checkAuth();
-                
-                if (isAuthenticated) {
-                    showMainSystem();
-                    showNotification(`Bem-vindo de volta, ${currentUser}!`, 'success');
-                } else {
-                    document.getElementById('login-screen').classList.remove('hidden');
-                    document.getElementById('main-system').classList.add('hidden');
-                }
-            } catch (error) {
-                console.error('Erro na inicialização:', error);
-                document.getElementById('login-screen').classList.remove('hidden');
-                document.getElementById('main-system').classList.add('hidden');
-            }
-        }
-
-        // =========================================================================
-        // FIM DO SISTEMA DE AUTENTICAÇÃO
-        // =========================================================================
-
-        // --- Sistema de Cache para Contagem Loja ---
-        const CACHE_KEY = 'contagem_loja_cache';
-        const CACHE_DURATION = 3 * 60 * 60 * 1000; // 3 horas em milissegundos
-        const BATCH_SIZE = 50; // Atualizar a cada 50 células
-        let pendingUpdates = new Map(); // Armazena as atualizações pendentes
-        let editCount = 0; // Contador de edições
-        
-        // --- Variáveis para Contadores ---
-        let currentContador = 'CONTAGEM LOJA'; // Contador atual (padrão: Contagem Loja/Contador 1)
-        
-        // --- Cache de dados da Nota Fiscal para busca instantânea ---
-        let notaFiscalData = null;
-        let codigoBarrasIndex = {}; // Índice para busca rápida: {codigo: descricao}
-
-        // --- SISTEMA DE SOM OTIMIZADO ---
-        let lastSoundTime = 0;
-        const SOUND_COOLDOWN = 100; // 100ms entre sons
-        let soundCount = 0;
-
-        // --- VARIÁVEL PARA CONTROLE DE TIMING ---
-        let lastInputTime = 0;
-        const INPUT_DEBOUNCE = 150; // ms para esperar pelo Enter após digitação
-
-        // --- Variáveis para Auto-Save por Mudanças no Cache ---
-        let cacheChangeTimer;
-        const CACHE_CHANGE_TIMEOUT = 5 * 60 * 1000; // 5 minutos em milissegundos
-        let lastCacheCount = 0; // Última contagem conhecida do cache
-
         // --- Gerenciamento de Abas ---
         const tabButtons = document.querySelectorAll('.tab-button');
         const contentStack = document.getElementById('content-stack');
@@ -551,160 +283,11 @@
         });
 
         /**
-         * ⚡ FUNÇÃO: Envia automaticamente o cache quando sair da aba Contagem
-         */
-        function autoSaveContagemOnTabChange() {
-            const currentTab = document.querySelector('.tab-button.border-indigo-600')?.dataset.tab;
-            const isLeavingContagem = currentTab === 'CONTAGEM LOJA';
-            
-            if (isLeavingContagem) {
-                const cacheKey = `${CACHE_KEY}_${currentContador}`;
-                const cachedData = loadFromCache(cacheKey);
-                
-                const hasData = Object.keys(cachedData).filter(key => key.startsWith('A')).length > 0;
-                
-                if (hasData) {
-                    console.log('🔄 Auto-save: Saindo da Contagem Loja, enviando dados...');
-                    showNotification('Salvando dados da contagem...', 'loading', 2000);
-                    
-                    processBatchUpdate();
-                }
-            }
-        }
-
-        /**
-         * ⚡ AUTO-SAVE quando a página for fechada/atualizada
-         */
-        function setupBeforeUnloadListener() {
-            window.addEventListener('beforeunload', function (e) {
-                const currentTab = document.querySelector('.tab-button.border-indigo-600')?.dataset.tab;
-                
-                if (currentTab === 'CONTAGEM LOJA') {
-                    const cacheKey = `${CACHE_KEY}_${currentContador}`;
-                    const cachedData = loadFromCache(cacheKey);
-                    const hasData = Object.keys(cachedData).filter(key => key.startsWith('A')).length > 0;
-                    
-                    if (hasData) {
-                        console.log('🔄 Tentando salvar antes de sair...');
-                        
-                        fetch(`${BACKEND_URL}/api/batch-update-sheet`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ 
-                                sheet_name: currentContador,
-                                updates: Object.entries(cachedData).map(([range, value]) => ({
-                                    range: range,
-                                    value: value
-                                }))
-                            }),
-                            keepalive: true
-                        }).catch(err => console.log('Auto-save falhou:', err));
-                    }
-                }
-            });
-        }
-
-        /**
-         * 🆕 VERIFICA se houve mudança no cache e reseta o timer se necessário
-         */
-        function checkCacheChange() {
-            const currentTab = document.querySelector('.tab-button.border-indigo-600')?.dataset.tab;
-            
-            if (currentTab !== 'CONTAGEM LOJA') {
-                return false;
-            }
-
-            const cacheKey = `${CACHE_KEY}_${currentContador}`;
-            const cachedData = loadFromCache(cacheKey);
-            const currentCacheCount = Object.keys(cachedData).filter(key => key.startsWith('A')).length;
-            
-            console.log(`🔍 Monitor Cache: ${lastCacheCount} -> ${currentCacheCount}`);
-            
-            if (currentCacheCount !== lastCacheCount) {
-                console.log(`🔄 Mudança detectada no cache! Resetando timer de 5 minutos.`);
-                lastCacheCount = currentCacheCount;
-                resetCacheChangeTimer();
-                return true;
-            }
-            
-            return false;
-        }
-
-        /**
-         * 🆕 Reseta o timer de mudanças no cache
-         */
-        function resetCacheChangeTimer() {
-            if (cacheChangeTimer) {
-                clearTimeout(cacheChangeTimer);
-            }
-            
-            cacheChangeTimer = setTimeout(() => {
-                checkAndAutoSaveByCache();
-            }, CACHE_CHANGE_TIMEOUT);
-            
-            console.log(`⏰ Timer de cache resetado: 5 minutos`);
-        }
-
-        /**
-         * 🆕 Verifica e executa auto-save baseado em mudanças no cache
-         */
-        function checkAndAutoSaveByCache() {
-            const currentTab = document.querySelector('.tab-button.border-indigo-600')?.dataset.tab;
-            
-            if (currentTab === 'CONTAGEM LOJA') {
-                const cacheKey = `${CACHE_KEY}_${currentContador}`;
-                const cachedData = loadFromCache(cacheKey);
-                const hasData = Object.keys(cachedData).filter(key => key.startsWith('A')).length > 0;
-                
-                if (hasData) {
-                    console.log('🔄 Auto-save por inatividade de cache: 5 minutos sem alterações');
-                    showNotification('Salvando dados automaticamente...', 'loading', 3000);
-                    processBatchUpdate();
-                }
-            }
-            
-            startCacheChangeMonitor();
-        }
-
-        /**
-         * 🆕 Inicia o monitor de mudanças no cache
-         */
-        function startCacheChangeMonitor() {
-            if (cacheChangeTimer) {
-                clearTimeout(cacheChangeTimer);
-            }
-            
-            const cacheKey = `${CACHE_KEY}_${currentContador}`;
-            const cachedData = loadFromCache(cacheKey);
-            lastCacheCount = Object.keys(cachedData).filter(key => key.startsWith('A')).length;
-            
-            console.log(`🔍 Iniciando monitor de cache. Contagem inicial: ${lastCacheCount}`);
-            
-            setInterval(() => {
-                checkCacheChange();
-            }, 30000);
-            
-            resetCacheChangeTimer();
-        }
-
-        /**
          * Altera a aba ativa e carrega o conteúdo.
-         * AGORA COM CONTROLE DE MONITOR DE CACHE
+         * @param {string} sheetName O nome da aba (que é também o nome da planilha no Sheets).
          */
         function switchTab(sheetName) {
-            autoSaveContagemOnTabChange();
-            
-            const currentTab = document.querySelector('.tab-button.border-indigo-600')?.dataset.tab;
-            if (currentTab === 'CONTAGEM LOJA' && sheetName !== 'CONTAGEM LOJA') {
-                if (cacheChangeTimer) {
-                    clearTimeout(cacheChangeTimer);
-                }
-            }
-            
-            if (sheetName === 'CONTAGEM LOJA') {
-                startCacheChangeMonitor();
-            }
-
+            // 1. Atualiza o estilo dos botões
             tabButtons.forEach(btn => {
                 if (btn.dataset.tab === sheetName) {
                     btn.classList.add('border-indigo-600', 'text-indigo-600');
@@ -715,17 +298,19 @@
                 }
             });
 
+            // 2. Limpa o conteúdo e define o placeholder de carregamento
             contentStack.innerHTML = `<div class="text-center py-10 text-gray-500">Carregando dados de ${sheetName}...</div>`;
             
+            // 3. Renderiza o layout específico da aba (se houver)
             if (sheetName === "NOTA FISCAL") {
                 contentStack.innerHTML = renderNotaFiscalLayout();
             } else if (sheetName === "CONTAGEM LOJA") {
                 contentStack.innerHTML = renderContagemLojaLayout();
-                currentContador = 'CONTAGEM LOJA';
             } else if (sheetName === "CONFERENCIA") {
                 contentStack.innerHTML = renderConferenciaLayout();
             }
             
+            // 4. Inicia a busca de dados no backend
             loadTabContent(sheetName);
         }
 
@@ -767,29 +352,13 @@
         }
 
         /**
-         * Retorna o HTML completo da aba CONTAGEM LOJA com mini-menu de contadores.
+         * Retorna o HTML completo da aba CONTAGEM LOJA.
          */
         function renderContagemLojaLayout() {
             return `
                 <div id="contagem-loja-content">
-                    <!-- Mini-menu de Contadores -->
-                    <div class="flex border-b border-gray-200 mb-4 print-hidden">
-                        <button data-contador="CONTAGEM LOJA" class="contador-button px-4 py-2 text-sm font-medium border-b-2 border-blue-600 text-blue-600 transition-colors duration-150">Contador 1</button>
-                        <button data-contador="CONTADOR 2" class="contador-button px-4 py-2 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 transition-colors duration-150">Contador 2</button>
-                        <button data-contador="CONTADOR 3" class="contador-button px-4 py-2 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 transition-colors duration-150">Contador 3</button>
-                        <button data-contador="CONTADOR 4" class="contador-button px-4 py-2 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 transition-colors duration-150">Contador 4</button>
-                        <button data-contador="CONTADOR 5" class="contador-button px-4 py-2 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 transition-colors duration-150">Contador 5</button>
-                    </div>
-
-                    <div class="flex flex-wrap gap-3 pb-4 mb-4 border-b border-gray-200 print-hidden">
-                        <div class="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                            <p class="font-semibold text-yellow-800 text-lg">Escanear abaixo</p>
-                            <p class="text-yellow-600 text-sm mt-1">Dados salvos localmente (atualização em lote)</p>
-                        </div>
-                        <button onclick="forceBatchUpdate()" class="flex items-center space-x-2 px-4 py-2 bg-blue-100 text-blue-700 rounded-lg shadow-sm hover:bg-blue-200 transition duration-150 text-sm font-medium border border-blue-300">
-                            <span>Forçar Envio</span>
-                            <span id="pending-count" class="bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs">0</span>
-                        </button>
+                    <div class="p-4 bg-yellow-50 border border-yellow-200 rounded-lg mb-4 print-hidden">
+                        <p class="font-semibold text-yellow-800 text-lg">Escanear abaixo</p>
                     </div>
                     <div id="dynamic-table-content-contagem">
                         <p class="text-center text-gray-400 py-10">Carregando dados...</p>
@@ -828,63 +397,47 @@
         }
 
         /**
-         * Renderiza a tabela da Contagem Loja com 3000 linhas pré-renderizadas e 2 colunas.
+         * Renderiza a tabela da Contagem Loja com 3000 linhas pré-renderizadas.
+         * A primeira célula editável (A1) é mapeada para a primeira linha de dados do Sheets.
          */
         function renderContagemTableFixedRows(data, headers) {
             const fixedRows = 3000;
-            
-            const cacheKey = `${CACHE_KEY}_${currentContador}`;
-            const cachedData = loadFromCache(cacheKey);
-            
+            // A lista de dados existente é tudo o que vem do Sheets.
+            // Se o primeiro elemento for igual ao header, remove o header (comportamento padrão de fetchSheetsData)
             const existingData = (data.length > 0 && headers.length > 0 && String(data[0][0]) === headers[0]) 
                                  ? data.slice(1) 
-                                 : data;
+                                 : data; 
 
             let html = `
                 <div class="rounded-lg border border-gray-200 overflow-x-auto shadow-sm">
                     <table class="mock-table w-full text-sm" id="contagem-table">
                         <thead class="bg-gray-50 sticky top-0">
-                            <tr>
-                                <th>Código de Barras</th>
-                                <th>Descrição</th>
-                            </tr>
+                            <tr><th class="expand-mode-cell">Código de Barras</th></tr>
                         </thead>
                         <tbody>`;
 
             for (let rowIndex = 0; rowIndex < fixedRows; rowIndex++) {
-                const sheetRowIndex = rowIndex + 1;
-                const sheetRangeA = `A${sheetRowIndex}`;
-                const sheetRangeC = `C${sheetRowIndex}`;
+                // Mapeamento CORRIGIDO: rowIndex 0 (primeira linha do <tbody>) corresponde à linha 1 do Sheets (A1)
+                const sheetRowIndex = rowIndex + 1; // CORRIGIDO PARA MAPEAR DIRETAMENTE A PARTIR DE A1
+                const sheetRange = `A${sheetRowIndex}`;
                 
-                let cellValueA = '';
-                if (cachedData[sheetRangeA] !== undefined) {
-                    cellValueA = cachedData[sheetRangeA];
-                } else if (existingData[rowIndex] && existingData[rowIndex][0] !== undefined) {
-                    cellValueA = existingData[rowIndex][0];
-                }
+                // Pega o valor existente da célula (se houver)
+                const cellValue = (existingData[rowIndex] && existingData[rowIndex][0] !== undefined) 
+                                ? existingData[rowIndex][0] 
+                                : '';
                 
-                let cellValueC = '';
-                if (cachedData[sheetRangeC] !== undefined) {
-                    cellValueC = cachedData[sheetRangeC];
-                } else if (existingData[rowIndex] && existingData[rowIndex][2] !== undefined) {
-                    cellValueC = existingData[rowIndex][2];
-                }
-
-                const hasRedBackground = cellValueA !== '' && cellValueC === '';
-                const rowClass = hasRedBackground ? 'bg-red-50' : '';
-
+                // Define os atributos para a célula editável
                 const editAttributes = `contenteditable="true"
-                                        onblur="handleContagemCellEdit(this, '${sheetRangeA}', '${currentContador}')"
-                                        onkeydown="handleContagemKeyPress(event, '${sheetRangeA}', '${currentContador}')"
-                                        oninput="handleContagemCellInput(this)"
-                                        data-original-value="${cellValueA}"
-                                        data-sheet-range="${sheetRangeA}"`;
+                                        onblur="handleCellEdit(this, '${sheetRange}', 'CONTAGEM LOJA')"
+                                        onkeydown="handleContagemKeyPress(event, '${sheetRange}', 'CONTAGEM LOJA')"
+                                        data-original-value="${cellValue}"
+                                        data-sheet-range="${sheetRange}"`;
                 
-                const cellClassesA = 'cursor-text hover:bg-indigo-50/50 focus:bg-indigo-100 border border-transparent focus:border-indigo-400 transition expand-mode-cell';
+                // Aplica a classe de expandido por padrão
+                const cellClasses = 'cursor-text hover:bg-indigo-50/50 focus:bg-indigo-100 border border-transparent focus:border-indigo-400 transition expand-mode-cell';
 
-                html += `<tr data-row-index="${sheetRowIndex}" class="${rowClass}">
-                            <td ${editAttributes} onkeydown="handleContagemCellKeydown(event, this)" class="${cellClassesA}">${cellValueA}</td>
-                            <td class="expand-mode-cell descricao-cell" data-row-index="${sheetRowIndex}" data-sheet-range="${sheetRangeC}">${cellValueC}</td>
+                html += `<tr data-row-index="${sheetRowIndex}">
+                            <td ${editAttributes} class="${cellClasses}">${cellValue}</td>
                          </tr>`;
             }
 
@@ -905,6 +458,7 @@
             const isConferencia = sheetName === "CONFERENCIA";
             const isStatusEditable = isConferencia;
             
+            // Adiciona ID à tabela para ser alvo do toggleScrollMode
             let tableID = '';
             if (sheetName === 'CONFERENCIA') {
                 tableID = 'conferencia-table';
@@ -946,6 +500,7 @@
                     let editAttributes = '';
                     let cellClasses = '';
 
+                    // Apenas a coluna OBS (i=5) é editável na Conferência
                     const isCellEditable = (isStatusEditable && i === 5);
 
                     if (isCellEditable) {
@@ -957,6 +512,7 @@
                         cellClasses = 'cursor-text hover:bg-indigo-50/50 focus:bg-indigo-100 border border-transparent focus:border-indigo-400 transition';
                     }
                     
+                    // Lógica para aplicar a classe inicial de EXPANSÃO (Expand Mode)
                     let columnsToExpand = [];
                     if (isConferencia) {
                          columnsToExpand = [1, 2, 3, 4, 5, 6]; 
@@ -982,8 +538,7 @@
          * Gerencia a busca de dados e a renderização do conteúdo da aba.
          */
         async function loadTabContent(sheetName) {
-            const sheetToLoad = (sheetName === "CONTAGEM LOJA") ? currentContador : sheetName;
-            const data = await fetchSheetData(sheetToLoad);
+            const data = await fetchSheetData(sheetName);
 
             let targetElementId = 'dynamic-table-content';
             let headers = [];
@@ -994,34 +549,18 @@
                 const targetElement = document.getElementById(targetElementId);
                 if (targetElement) {
                     targetElement.innerHTML = renderTable(sheetName, data, headers);
-                    updateNotaFiscalCache(data);
                 }
 
             } else if (sheetName === "CONTAGEM LOJA") {
-                headers = ["Código de Barras", "Descrição"]; 
+                headers = ["Código de Barras"]; 
                 targetElementId = 'dynamic-table-content-contagem';
                 
-                setTimeout(() => {
-                    const contadorButtons = document.querySelectorAll('.contador-button');
-                    contadorButtons.forEach(button => {
-                        button.addEventListener('click', function() {
-                            switchContador(this.getAttribute('data-contador'));
-                        });
-                    });
-                }, 100);
-                
-                if (!notaFiscalData) {
-                    await loadNotaFiscalDataForCache();
-                }
-                
+                // Renderiza a tabela de 3000 linhas fixas
                 const targetElement = document.getElementById(targetElementId);
                 if (targetElement) {
                     targetElement.innerHTML = renderContagemTableFixedRows(data, headers);
                     
-                    updatePendingCount();
-                    
-                    startCacheChangeMonitor();
-                    
+                    // NOVO: Chama a função que encontra a primeira célula vazia após a última preenchida, foca nela e rola a tela
                     setTimeout(() => {
                         requestAnimationFrame(focusNextEmptyContagemCell);
                     }, 100); 
@@ -1035,175 +574,62 @@
                 if (targetElement) {
                     targetElement.innerHTML = renderTable(sheetName, data, headers);
                     
+                    // Aplica estilos condicionais após a renderização
                     setTimeout(() => {
                         applyConferenciaStyles(headers.length);
                     }, 0);
                 }
             }
         }
-
-        /**
-         * Carrega os dados da Nota Fiscal especificamente para o cache de busca
-         */
-        async function loadNotaFiscalDataForCache() {
-            try {
-                const data = await fetchSheetData("NOTA FISCAL");
-                updateNotaFiscalCache(data);
-            } catch (error) {
-                console.error("Erro ao carregar dados da Nota Fiscal para cache:", error);
-            }
-        }
-
-        /**
-         * Atualiza o cache local com os dados da Nota Fiscal para busca rápida
-         */
-        function updateNotaFiscalCache(data) {
-            if (!data || data.length === 0) {
-                notaFiscalData = [];
-                codigoBarrasIndex = {};
-                return;
-            }
-
-            notaFiscalData = data;
-            codigoBarrasIndex = {};
-
-            const dataRows = (data.length > 0 && data[0][0] === "Descrição") ? data.slice(1) : data;
-
-            dataRows.forEach(row => {
-                if (row.length >= 3) {
-                    const descricao = row[0] || '';
-                    const codigoBarras = String(row[2] || '').trim();
-                    
-                    if (codigoBarras && codigoBarras !== '') {
-                        codigoBarrasIndex[codigoBarras] = descricao;
-                    }
-                }
-            });
-
-            console.log(`Índice de códigos de barras atualizado: ${Object.keys(codigoBarrasIndex).length} itens`);
-        }
-
-        /**
-         * Busca a descrição correspondente a um código de barras no cache local
-         */
-        function buscarDescricaoPorCodigo(codigoBarras) {
-            const codigoLimpo = String(codigoBarras).trim();
-            return codigoBarrasIndex[codigoLimpo] || '';
-        }
-
-        /**
-         * Manipula o input em tempo real nas células da Contagem Loja
-         */
-        function handleContagemCellInput(element) {
-            const codigoBarras = element.textContent.trim();
-            lastInputTime = Date.now();
-            
-            if (codigoBarras && codigoBarras.length > 5) {
-                const descricao = buscarDescricaoPorCodigo(codigoBarras);
-                const row = element.closest('tr');
-                const descCell = row.querySelector('.descricao-cell');
-                
-                if (descricao) {
-                    if (descCell && descCell.textContent.trim() !== descricao) {
-                        descCell.textContent = descricao;
-                        row.classList.remove('bg-red-50');
-                        
-                        const cacheKey = `${CACHE_KEY}_${currentContador}`;
-                        const cachedData = loadFromCache(cacheKey);
-                        const sheetRangeC = descCell.getAttribute('data-sheet-range');
-                        cachedData[sheetRangeC] = descricao;
-                        saveToCache(cachedData, cacheKey);
-                    }
-                } else {
-                    if (descCell) {
-                        descCell.textContent = '';
-                    }
-                }
-            }
-        }
-
-        /**
-         * Alterna entre os contadores dentro da aba Contagem Loja
-         */
-        async function switchContador(contadorName) {
-            const cacheKeyCurrent = `${CACHE_KEY}_${currentContador}`;
-            const cachedDataCurrent = loadFromCache(cacheKeyCurrent);
-            const hasData = Object.keys(cachedDataCurrent).filter(key => key.startsWith('A')).length > 0;
-            
-            if (hasData) {
-                console.log(`🔄 Auto-save: Saindo do ${currentContador}, enviando dados...`);
-                showNotification(`Salvando dados do ${currentContador}...`, 'loading', 2000);
-                await processBatchUpdate();
-            }
-            
-            currentContador = contadorName;
-            
-            const contadorButtons = document.querySelectorAll('.contador-button');
-            contadorButtons.forEach(btn => {
-                if (btn.getAttribute('data-contador') === contadorName) {
-                    btn.classList.add('border-blue-600', 'text-blue-600');
-                    btn.classList.remove('border-transparent', 'text-gray-500', 'hover:border-gray-300', 'hover:text-gray-700');
-                } else {
-                    btn.classList.remove('border-blue-600', 'text-blue-600');
-                    btn.classList.add('border-transparent', 'text-gray-500', 'hover:border-gray-300', 'hover:text-gray-700');
-                }
-            });
-
-            const targetElement = document.getElementById('dynamic-table-content-contagem');
-            if (targetElement) {
-                targetElement.innerHTML = `<div class="text-center py-10 text-gray-500">Carregando dados do ${contadorName}...</div>`;
-            }
-
-            const data = await fetchSheetData(contadorName);
-            const headers = ["Código de Barras", "Descrição"];
-            
-            if (targetElement) {
-                targetElement.innerHTML = renderContagemTableFixedRows(data, headers);
-                
-                updatePendingCount();
-                
-                startCacheChangeMonitor();
-                
-                setTimeout(() => {
-                    requestAnimationFrame(focusNextEmptyContagemCell);
-                }, 100);
-            }
-        }
-
-   
+        
         /**
          * CORRIGIDO: Encontra a primeira célula vazia (após a última preenchida) na Contagem Loja, 
          * foca nela e rola a tela.
+         * Esta lógica garante que o foco sempre vá para a célula logo após a última contagem inserida, 
+         * ignorando buracos (células vazias) no meio da lista.
          */
         function focusNextEmptyContagemCell() {
+            // Seleciona todas as células editáveis (TD), ignorando o cabeçalho (TH)
             const cells = document.querySelectorAll('#contagem-table td[contenteditable="true"]');
             
             let cellToFocus = null; 
+            // Variável para rastrear o índice da ÚLTIMA célula preenchida
             let lastFilledCellIndex = -1;
             
+            // 1. Itera sobre todas as células para encontrar o índice da última célula preenchida
             for (let i = 0; i < cells.length; i++) {
                 const cell = cells[i];
+                // Verifica o conteúdo renderizado (que veio do backend)
                 const value = cell.textContent.trim();
                 
                 if (value !== '') {
+                    // Atualiza o índice da última célula que contém um valor
                     lastFilledCellIndex = i; 
                 }
             }
             
+            // 2. Determina a célula alvo (aquela imediatamente após a última preenchida)
             const targetCellIndex = lastFilledCellIndex + 1;
             
             if (targetCellIndex < cells.length) {
+                // Se o índice alvo estiver dentro do limite das células pré-renderizadas
                 cellToFocus = cells[targetCellIndex];
             } else if (cells.length > 0) {
+                 // Se todas as células estiverem preenchidas (targetCellIndex == cells.length), 
+                 // o foco vai para a última célula preenchida.
                  cellToFocus = cells[cells.length - 1];
                  showNotification("Aviso: A lista de contagem pode estar cheia (3000 linhas). Foco na última célula preenchida.", 'warning', 5000);
             }
             
+            // 3. Foca na célula (se encontrada), ajusta o cursor e rola a tela
             if (cellToFocus) {
+                // Rola o contêiner para que a célula fique visível
                 cellToFocus.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 
                 cellToFocus.focus();
                 
+                // moveCursorToEnd é crucial para que o navegador não selecione o texto existente,
+                // o que causaria a sobrescrita pelo próximo caractere digitado/scaneado.
                 moveCursorToEnd(cellToFocus); 
             }
         }
@@ -1216,8 +642,10 @@
             const range = document.createRange();
             const selection = window.getSelection();
             
+            // Garante que o cursor está no final do nó de texto, evitando a seleção total.
             if (element.childNodes.length > 0) {
                  const node = element.childNodes[0];
+                 // Verifica se é um nó de texto (para evitar erros em outros tipos de nós)
                  if (node.nodeType === 3) {
                      range.setStart(node, node.length);
                  } else {
@@ -1231,294 +659,7 @@
             selection.removeAllRanges();
             selection.addRange(range);
         }
-
-        // --- SISTEMA DE CACHE E ATUALIZAÇÃO EM LOTE ---
-
-        /**
-         * Carrega dados do cache local - AGORA COM SUPORTE A MÚLTIPLOS CONTADORES
-         */
-        function loadFromCache(cacheKey = CACHE_KEY) {
-            try {
-                const cached = localStorage.getItem(cacheKey);
-                if (!cached) return {};
-                
-                const cacheData = JSON.parse(cached);
-                
-                if (Date.now() - cacheData.timestamp > CACHE_DURATION) {
-                    localStorage.removeItem(cacheKey);
-                    return {};
-                }
-                
-                return cacheData.data || {};
-            } catch (error) {
-                console.error('Erro ao carregar cache:', error);
-                return {};
-            }
-        }
-
-        /**
-         * Salva dados no cache local - AGORA COM SUPORTE A MÚLTIPLOS CONTADORES
-         */
-        function saveToCache(data, cacheKey = CACHE_KEY) {
-            try {
-                const cacheData = {
-                    data: data,
-                    timestamp: Date.now()
-                };
-                localStorage.setItem(cacheKey, JSON.stringify(cacheData));
-            } catch (error) {
-                console.error('Erro ao salvar cache:', error);
-            }
-        }
-
-        /**
-         * Atualiza o contador de pendências na interface
-         */
-        function updatePendingCount() {
-            const countElement = document.getElementById('pending-count');
-            if (countElement) {
-                const cacheKey = `${CACHE_KEY}_${currentContador}`;
-                const cachedData = loadFromCache(cacheKey);
-                
-                const colunaACount = Object.keys(cachedData).filter(key => key.startsWith('A')).length;
-                countElement.textContent = colunaACount;
-                
-                checkCacheChange();
-            }
-        }
-
-        /**
-         * Manipula a edição de células na Contagem Loja (com cache)
-         */
-        function handleContagemCellEdit(element, sheetRange, sheetName) {
-            const newValue = element.textContent.trim();
-            const originalValue = element.dataset.originalValue || '';
-
-            if (newValue === originalValue) {
-                return;
-            }
-
-            const cacheKey = `${CACHE_KEY}_${currentContador}`;
-            const cachedData = loadFromCache(cacheKey);
-            
-            if (newValue === '') {
-                delete cachedData[sheetRange];
-                const rowIndex = sheetRange.slice(1);
-                const sheetRangeC = `C${rowIndex}`;
-                delete cachedData[sheetRangeC];
-            } else {
-                cachedData[sheetRange] = newValue;
-                
-                const descricao = buscarDescricaoPorCodigo(newValue);
-                const row = element.closest('tr');
-                const descCell = row.querySelector('.descricao-cell');
-                
-                if (descricao) {
-                    if (descCell) {
-                        descCell.textContent = descricao;
-                        const sheetRangeC = descCell.getAttribute('data-sheet-range');
-                        cachedData[sheetRangeC] = descricao;
-                    }
-                    row.classList.remove('bg-red-50');
-                } else {
-                    if (descCell) {
-                        descCell.textContent = '';
-                        const sheetRangeC = descCell.getAttribute('data-sheet-range');
-                        delete cachedData[sheetRangeC];
-                    }
-                    row.classList.add('bg-red-50');
-                    
-                    const timeSinceInput = Date.now() - lastInputTime;
-                    if (timeSinceInput > INPUT_DEBOUNCE) {
-                        playErrorSoundIfAllowed();
-                    }
-                }
-            }
-            
-            saveToCache(cachedData, cacheKey);
-
-            element.dataset.originalValue = newValue;
-
-            if (newValue !== '') {
-                pendingUpdates.set(sheetRange, newValue);
-                editCount++;
-            } else {
-                pendingUpdates.delete(sheetRange);
-            }
-
-            updatePendingCount();
-
-            if (newValue !== '' && editCount >= BATCH_SIZE) {
-                processBatchUpdate();
-            }
-        }
-
-        /**
-         * ⚡⚡⚡ FUNÇÃO CORRIGIDA: Processa atualização em lote - AGORA COM SUPORTE A MÚLTIPLOS CONTADORES
-         */
-        async function processBatchUpdate() {
-            const cacheKey = `${CACHE_KEY}_${currentContador}`;
-            const cachedData = loadFromCache(cacheKey);
-            
-            if (Object.keys(cachedData).length === 0) {
-                showNotification('Nenhum dado no cache para enviar', 'info', 2000);
-                return;
-            }
-
-            showNotification(`Enviando ${Object.keys(cachedData).filter(key => key.startsWith('A')).length} células do ${currentContador}...`, 'loading');
-
-            try {
-                const updates = Object.entries(cachedData).map(([range, value]) => ({
-                    range: range,
-                    value: value
-                }));
-
-                const response = await fetch(`${BACKEND_URL}/api/batch-update-sheet`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        sheet_name: currentContador,
-                        updates: updates 
-                    })
-                });
-
-                const result = await response.json();
-                hideNotification();
-
-                if (response.ok && !result.error) {
-                    localStorage.removeItem(cacheKey);
-                    pendingUpdates.clear();
-                    editCount = 0;
-                    updatePendingCount();
-                    
-                    lastCacheCount = 0;
-                    
-                    showNotification(`${result.processed || updates.length} células salvas no ${currentContador}!`, 'success', 3000);
-                } else {
-                    showNotification(`Erro: ${result.error}`, 'error');
-                }
-            } catch (error) {
-                hideNotification();
-                showNotification('Erro de rede', 'error');
-            }
-        }
-
-        /**
-         * ⚡⚡⚡ FUNÇÃO CORRIGIDA: Força o envio do lote pendente
-         */
-        function forceBatchUpdate() {
-            processBatchUpdate();
-        }
-
-        // --- SISTEMA DE SOM OTIMIZADO ---
         
-        /**
-         * Toca som APENAS se não estiver no cooldown
-         */
-        function playErrorSoundIfAllowed() {
-            const now = Date.now();
-            const timeSinceLastSound = now - lastSoundTime;
-            
-            if (timeSinceLastSound < SOUND_COOLDOWN) {
-                console.log(`⏸️ Som ignorado: Cooldown ativo (${timeSinceLastSound}ms < ${SOUND_COOLDOWN}ms)`);
-                return false;
-            }
-            
-            soundCount++;
-            console.log(`🎵 TOCANDO SOM ${soundCount}`);
-            playErrorSound();
-            lastSoundTime = now;
-            return true;
-        }
-
-        /**
-         * Toca som de BIP usando Web Audio API
-         */
-        function playErrorSound() {
-            try {
-                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                const oscillator = audioContext.createOscillator();
-                const gainNode = audioContext.createGain();
-                
-                oscillator.connect(gainNode);
-                gainNode.connect(audioContext.destination);
-                
-                oscillator.frequency.value = 500;
-                oscillator.type = 'square';
-                gainNode.gain.value = 0.3; 
-                
-                gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-                gainNode.gain.linearRampToValueAtTime(0.3, audioContext.currentTime + 0.01);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
-                
-                oscillator.start(audioContext.currentTime);
-                oscillator.stop(audioContext.currentTime + 0.2);
-                
-            } catch (error) {
-                console.log('Erro Web Audio:', error);
-                try {
-                    console.log('\x07');
-                } catch (fallbackError) {
-                    console.log('❌ Nenhum método de áudio funcionou');
-                }
-            }
-        }
-
-        /**
-         * GERENCIA O COMPORTAMENTO DO ENTER NA CONTAGEM LOJA.
-         */
-        function handleContagemKeyPress(event, sheetRange, sheetName) {
-            if (event.keyCode === 13) {
-                event.preventDefault();
-                
-                const element = event.target;
-                const codigoBarras = element.textContent.trim();
-                
-                if (codigoBarras && codigoBarras.length > 5) {
-                    const descricao = buscarDescricaoPorCodigo(codigoBarras);
-                    const row = element.closest('tr');
-                    const descCell = row.querySelector('.descricao-cell');
-                    
-                    if (descricao) {
-                        if (descCell) {
-                            descCell.textContent = descricao;
-                        }
-                        row.classList.remove('bg-red-50');
-                    } else {
-                        if (descCell) {
-                            descCell.textContent = '';
-                        }
-                        row.classList.add('bg-red-50');
-                        playErrorSoundIfAllowed();
-                    }
-                }
-                
-                handleContagemCellEdit(element, sheetRange, sheetName);
-
-                const currentRow = parseInt(sheetRange.slice(1));
-                const nextRow = currentRow + 1;
-                const nextRange = `A${nextRow}`;
-                const nextCell = document.querySelector(`td[data-sheet-range="${nextRange}"]`);
-                
-                if (nextCell) {
-                    nextCell.focus();
-                    moveCursorToEnd(nextCell); 
-                    nextCell.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                } else {
-                    showNotification("Fim da lista pré-renderizada. Pressione F5 para recarregar a página e continuar a contagem.", 'warning', 5000);
-                }
-            }
-        }
-
-        /**
-         * Manipula o evento keydown nas células da Contagem Loja
-         */
-        function handleContagemCellKeydown(event, element) {
-            if (event.key === 'Enter') {
-                event.preventDefault();
-            }
-        }
-
         /**
          * Alterna entre o Modo Scroll e o Modo Expandido para a tabela especificada.
          */
@@ -1550,9 +691,11 @@
                 cells.forEach(cell => {
                     
                     if (isScrollModeActive) {
+                        // Mudar para MODO EXPANDIDO (Remove todas as classes de scroll)
                         cell.classList.remove(scrollClassDesc, scrollClassNumeric, scrollClassCode);
                         cell.classList.add('expand-mode-cell'); 
                     } else {
+                        // Mudar para MODO SCROLL
                         cell.classList.remove('expand-mode-cell');
 
                         if (sheetName === 'CONFERENCIA') {
@@ -1579,6 +722,7 @@
                 });
             });
 
+            // Atualiza o texto do botão
             if (isScrollModeActive) {
                 button.textContent = 'Modo Scroll';
                 button.classList.remove('bg-gray-100', 'text-gray-800', 'hover:bg-gray-200', 'border-gray-300');
@@ -1617,25 +761,61 @@
 
         // --- Funções de API e Utilitários ---
         
+        /**
+         * GERENCIA O COMPORTAMENTO DO ENTER NA CONTAGEM LOJA.
+         * Salva o valor da célula atual e pula para a próxima célula, SEM APAGAR o conteúdo dela.
+         */
+        function handleContagemKeyPress(event, sheetRange, sheetName) {
+            if (event.keyCode === 13) {
+                event.preventDefault();
+                
+                const element = event.target;
+                // 1. Salva a célula atual
+                handleCellEdit(element, sheetRange, sheetName); 
+
+                // 2. Calcula a próxima linha 
+                const currentRow = parseInt(sheetRange.slice(1));
+                const nextRow = currentRow + 1;
+                const nextRange = `A${nextRow}`;
+
+                // 3. Tenta encontrar a próxima célula pré-renderizada
+                const nextCell = document.querySelector(`td[data-sheet-range="${nextRange}"]`);
+                
+                if (nextCell) {
+                    // NOVO COMPORTAMENTO: Não apaga o conteúdo da próxima célula, apenas foca.
+                    nextCell.focus();
+                    
+                    // Move o cursor para o final (se preenchida) ou início (se vazia).
+                    // Isso é crucial para evitar que o navegador selecione o texto e o próximo scan o apague.
+                    moveCursorToEnd(nextCell); 
+                    
+                    // Rola para a célula
+                    nextCell.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    
+                } else {
+                    showNotification("Fim da lista pré-renderizada. Pressione F5 para recarregar a página e continuar a contagem.", 'warning', 5000);
+                }
+            }
+        }
+
         async function fetchSheetData(sheetName) {
             showNotification(`Buscando dados da aba '${sheetName}'...`, 'loading');
             
             try {
-                const response = await fetch(`${BACKEND_URL}/api/fetch-sheet`, {
+                const response = await fetch(`${BACKEND_URL}/fetch-sheet-data`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ sheet_name: sheetName })
                 });
 
                 const result = await response.json();
+                hideNotification();
 
                 if (!response.ok || result.error) {
-                    hideNotification();
                     showNotification(`Erro ao carregar '${sheetName}': ${result.error || 'Erro de servidor.'}`, 'error');
                     return [];
                 }
                 
-                hideNotification();
                 return result.data || [];
 
             } catch (error) {
@@ -1645,17 +825,17 @@
                 return [];
             }
         }
-
+        
         async function importXMLData(xmlContent) {
             if (!xmlContent || xmlContent.trim().length < 100) {
                 showNotification("Conteúdo XML vazio ou inválido para importação.", 'warning');
                 return;
             }
 
-            showNotification("Enviando XML para o backend...", 'loading');
+            showNotification("Enviando XML para o backend Go...", 'loading');
 
             try {
-                const response = await fetch(`${BACKEND_URL}/api/import-xml`, {
+                const response = await fetch(`${BACKEND_URL}/import-xml-data`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ xml_content: xmlContent, user_id: USER_ID })
@@ -1674,7 +854,7 @@
             } catch (error) {
                 hideNotification();
                 console.error("Erro de Rede:", error);
-                showNotification("Erro de Rede ao tentar conectar com o servidor.", 'error');
+                showNotification("Erro de Rede ao tentar conectar com o servidor Go. Verifique se ele está rodando em https://back-end-nfe.onrender.com", 'error');
             }
         }
 
@@ -1694,7 +874,7 @@
             showNotification("Importando XML pela chave de acesso...", "loading");
 
             try {
-                const response = await fetch(`${BACKEND_URL}/api/importar-xml`, {
+                const response = await fetch(`${BACKEND_URL}/importar-xml-chave`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ chaveAcesso })
@@ -1732,7 +912,7 @@
             element.classList.add('saving-status'); 
 
             try {
-                const response = await fetch(`${BACKEND_URL}/api/update-sheet`, {
+                const response = await fetch(`${BACKEND_URL}/update-sheet-data`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ sheet_name: sheetName, range: sheetRange, value: newValue })
@@ -1744,8 +924,11 @@
 
                 if (!response.ok || result.error) {
                     showNotification(`Erro ao salvar ${sheetRange}: ${result.error || 'Erro de servidor.'}`, 'error');
+                    // Reverte o valor da célula em caso de falha de salvamento
                     element.textContent = originalValue; 
                 } else {
+                    // ATENÇÃO: CORREÇÃO APLICADA AQUI (camelCase de dataset)
+                    // Atualiza o valor original para o novo valor salvo
                     element.dataset.originalValue = newValue;
                     showNotification(`Célula ${sheetRange} atualizada com sucesso para '${newValue}'.`, 'success', 2000);
                 }
@@ -1754,26 +937,21 @@
                 element.classList.remove('saving-status');
                 console.error("Erro na comunicação para atualizar célula:", error);
                 showNotification(`Erro de Rede ao tentar atualizar ${sheetRange}.`, 'error');
+                // Reverte o valor da célula em caso de falha de rede
                 element.textContent = originalValue;
             }
         }
 
         
-        /**
-         * CONFIGURAÇÃO ATUALIZADA: Inclui todos os contadores para limpeza
-         */
         const sheetsConfig = [
             { name: "NOTA FISCAL", range: 'A2:Z' },
-            { name: "CONTAGEM LOJA", range: 'A1:C3000' },
-            { name: "CONTADOR 2", range: 'A1:C3000' },
-            { name: "CONTADOR 3", range: 'A1:C3000' },
-            { name: "CONTADOR 4", range: 'A1:C3000' },
-            { name: "CONTADOR 5", range: 'A1:C3000' },
+            { name: "CONTAGEM LOJA", range: 'A1:Z' }, 
+            // Coluna OBS (F) na Conferência
             { name: "CONFERENCIA", range: 'F2:F' } 
         ];
 
         function confirmClearAllSheets() {
-            const confirmationMessage = "ATENÇÃO: Você tem certeza que deseja APAGAR TODOS os dados?\n\nIsso irá:\n- Limpar Nota Fiscal\n- Limpar TODOS os dados das colunas A e C de TODOS os contadores (1-5)\n- Limpar OBS da Conferência\n- Limpar caches locais\n\nEsta ação é IRREVERSÍVEL!";
+            const confirmationMessage = "ATENÇÃO: Você tem certeza que deseja APAGAR TODOS os dados de entrada (Nota Fiscal e Contagem Loja) E a coluna OBS da Conferência?";
             
             if (confirm(confirmationMessage)) {
                 clearMultipleSheets();
@@ -1781,7 +959,7 @@
         }
 
         async function clearMultipleSheets() {
-            showNotification(`Iniciando limpeza completa...`, 'loading', 30000);
+            showNotification(`Iniciando limpeza em lote das ${sheetsConfig.length} abas de entrada...`, 'loading', 30000);
 
             let successCount = 0;
             let errorCount = 0;
@@ -1796,32 +974,15 @@
                 }
             }
 
-            const contadores = ['CONTAGEM LOJA', 'CONTADOR 2', 'CONTADOR 3', 'CONTADOR 4', 'CONTADOR 5'];
-            contadores.forEach(contador => {
-                const cacheKey = `${CACHE_KEY}_${contador}`;
-                localStorage.removeItem(cacheKey);
-            });
-
-            pendingUpdates.clear();
-            editCount = 0;
-            updatePendingCount();
-
-            lastCacheCount = 0;
-
             hideNotification();
 
             if (errorCount === 0) {
-                showNotification(`Limpeza completa concluída! ${successCount} ações realizadas. Caches locais limpos.`, 'success', 5000);
+                showNotification(`Limpeza global concluída! ${successCount} ações de limpeza realizadas com sucesso.`, 'success', 5000);
             } else {
-                 showNotification(`Limpeza concluída com ${errorCount} erro(s). Caches locais foram limpos.`, 'warning', 8000);
+                 showNotification(`Limpeza global concluída com ${errorCount} erro(s). Verifique o console.`, 'warning', 8000);
             }
 
-            const activeTab = document.querySelector('.tab-button.border-indigo-600').dataset.tab;
-            if (activeTab === "CONTAGEM LOJA") {
-                switchContador(currentContador);
-            } else {
-                switchTab(activeTab);
-            }
+            switchTab('NOTA FISCAL'); 
         }
 
         async function clearSheetData(sheetName, range, showNotificationOnSuccess = true) {
@@ -1830,7 +991,7 @@
             }
             
             try {
-                const response = await fetch(`${BACKEND_URL}/api/clear-sheet`, {
+                const response = await fetch(`${BACKEND_URL}/clear-sheet-data`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ sheet_name: sheetName, range: range })
@@ -1881,14 +1042,9 @@
 
         function showNotification(message, type = 'success', duration = 5000) {
             const container = document.getElementById('notifications-container');
-            if (!container) {
-                console.warn('Container de notificações não encontrado:', message);
-                return;
-            }
-            
-            hideNotification();
             
             let bgColor = 'bg-green-500';
+            // Os ícones são definidos com h-6 w-6 para que a media query possa reduzi-los.
             let icon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>`;
 
             if (type === 'error') {
@@ -1900,6 +1056,7 @@
             }
 
             const notification = document.createElement('div');
+            // A classe 'p-4' e 'space-x-3' serão sobrescritas no CSS para mobile
             notification.className = `p-4 text-white ${bgColor} rounded-lg shadow-xl flex items-center space-x-3 transition-opacity duration-300 opacity-0`;
             notification.innerHTML = `
                 <div>${icon}</div>
@@ -1908,8 +1065,6 @@
 
             if (type === 'loading') {
                 notification.id = 'loading-notification';
-            } else {
-                notification.id = 'temp-notification-' + Date.now();
             }
 
             container.appendChild(notification);
@@ -1919,48 +1074,18 @@
             if (type !== 'loading') {
                 setTimeout(() => {
                     notification.classList.add('opacity-0');
-                    setTimeout(() => {
-                        if (notification.parentNode === container) {
-                            container.removeChild(notification);
-                        }
-                    }, 300);
+                    notification.addEventListener('transitionend', () => notification.remove());
                 }, duration);
             }
         }
 
         function hideNotification() {
-            const container = document.getElementById('notifications-container');
-            if (!container) return;
-            
-            const notifications = container.querySelectorAll('div');
-            notifications.forEach(notification => {
-                notification.classList.add('opacity-0');
-                setTimeout(() => {
-                    if (notification.parentNode === container) {
-                        container.removeChild(notification);
-                    }
-                }, 300);
-            });
-        }
-	
-        /**
-         * Alterna entre mostrar e ocultar a senha
-         */
-        function togglePasswordVisibility() {
-            const passwordInput = document.getElementById('password');
-            const eyeIcon = document.getElementById('eye-icon');
-            const eyeSlashIcon = document.getElementById('eye-slash-icon');
-            
-            if (passwordInput.type === 'password') {
-                passwordInput.type = 'text';
-                eyeIcon.classList.add('hidden');
-                eyeSlashIcon.classList.remove('hidden');
-            } else {
-                passwordInput.type = 'password';
-                eyeIcon.classList.remove('hidden');
-                eyeSlashIcon.classList.add('hidden');
+            const loadingNotification = document.getElementById('loading-notification');
+            if (loadingNotification) {
+                loadingNotification.remove();
             }
         }
+
 
         function handleFileUploadChange(event) {
             const file = event.target.files[0];
@@ -1980,7 +1105,8 @@
 
         // --- Inicialização ---
 
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', () => {
+            // Garante que o listener para ENTER no campo da chave de acesso do modal funcione
             const chaveInput = document.getElementById("chave-acesso-input");
             if (chaveInput) {
                 chaveInput.addEventListener('keydown', function(event) {
@@ -1991,22 +1117,8 @@
                 });
             }
 
-            document.getElementById('password').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    login();
-                }
-            });
-            
-            document.getElementById('username').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    login();
-                }
-            });
-            
-            initializeApp();
+            switchTab('NOTA FISCAL'); 
         });
-
-
 
     </script>
 </body>
